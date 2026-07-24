@@ -31,8 +31,12 @@
   .top-right{display:flex;align-items:center;gap:14px}
   .updated{color:var(--muted);font-size:12px;text-align:right}
   .updated b{color:var(--ink-2);font-weight:600}
-  .tbtn{cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--ink-2);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600}
+  .tbtn{cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--ink-2);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .tbtn:hover{color:var(--ink)}
+  .tbtn:disabled{opacity:.6;cursor:default}
+  .tbtn .ic{display:inline-block}
+  .tbtn.spin .ic{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .grid{display:grid;gap:14px}
   .kpis{grid-template-columns:repeat(4,1fr);margin-bottom:14px}
   .agents{grid-template-columns:repeat(3,1fr);margin-bottom:22px}
@@ -93,6 +97,7 @@
     </div>
     <div class="top-right">
       <div class="updated">Ultimo aggiornamento<br><b id="upd">—</b></div>
+      <button class="tbtn" id="refreshBtn"><span class="ic">↻</span> Aggiorna</button>
       <button class="tbtn" id="themeBtn">☀︎ Tema chiaro</button>
     </div>
   </header>
@@ -229,7 +234,17 @@ function totBars(){
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 
-fetch('data.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;if(j.open)OPEN=j.open;}}).catch(()=>{}).finally(renderAll);
+function loadData(){
+  const btn=document.getElementById('refreshBtn');
+  if(btn){btn.disabled=true;btn.classList.add('spin');}
+  return fetch('data.json?t='+Date.now(),{cache:'no-store'})
+    .then(r=>r.ok?r.json():Promise.reject())
+    .then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;if(j.open)OPEN=j.open;}})
+    .catch(()=>{})
+    .finally(()=>{renderAll();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
+}
+document.getElementById('refreshBtn').addEventListener('click',loadData);
+loadData();
 </script>
 </body>
 </html>
