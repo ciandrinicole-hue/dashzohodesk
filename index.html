@@ -3,23 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nuumipet Support · Ticket Chiusi</title>
+<title>Nuumipet Support · Ticket</title>
 <style>
   :root{
     --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#212120;
     --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10); --gsep:rgba(255,255,255,0.22);
-    --m:#3987e5;  /* Mavreen  */
-    --n:#d95926;  /* Nicole   */
-    --u:#199e70;  /* Non ass. */
-    --good:#0ca30c;
+    --m:#3987e5; --n:#d95926; --u:#199e70; --good:#0ca30c; --warn:#fab219;
     --shadow:0 1px 0 rgba(255,255,255,0.02), 0 8px 24px rgba(0,0,0,0.35);
   }
   html[data-theme="light"]{
     --plane:#f4f4f1; --surface:#ffffff; --surface-2:#faf9f7;
     --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
     --grid:#e6e5df; --axis:#c3c2b7; --border:rgba(11,11,11,0.10); --gsep:rgba(11,11,11,0.22);
-    --m:#2a78d6; --n:#eb6834; --u:#1baf7a; --good:#0ca30c;
+    --m:#2a78d6; --n:#eb6834; --u:#1baf7a; --good:#0ca30c; --warn:#c98500;
     --shadow:0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
   }
   *{box-sizing:border-box}
@@ -37,21 +34,24 @@
   .tbtn{cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--ink-2);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600}
   .tbtn:hover{color:var(--ink)}
   .grid{display:grid;gap:14px}
-  .kpis{grid-template-columns:repeat(3,1fr);margin-bottom:14px}
+  .kpis{grid-template-columns:repeat(4,1fr);margin-bottom:14px}
   .agents{grid-template-columns:repeat(3,1fr);margin-bottom:22px}
   .charts{grid-template-columns:1.4fr 1fr;margin-bottom:22px}
-  @media(max-width:860px){.kpis,.agents,.charts{grid-template-columns:1fr}}
+  @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:860px){.agents,.charts{grid-template-columns:1fr}}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr}}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
   .card h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  .kpi .big{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-1px;margin:8px 0 2px;line-height:1}
-  .kpi .big.green{color:var(--good)}
+  .kpi .big{font-size:clamp(30px,4.6vw,48px);font-weight:700;letter-spacing:-1px;margin:8px 0 2px;line-height:1}
+  .kpi .big.green{color:var(--good)} .kpi .big.amber{color:var(--warn)}
   .kpi .sub{font-size:13px;color:var(--ink-2)}
   .chip{display:inline-flex;align-items:center;gap:6px;margin-right:10px;white-space:nowrap}
   .dot{width:9px;height:9px;border-radius:3px;display:inline-block}
   .dot.m{background:var(--m)} .dot.n{background:var(--n)} .dot.u{background:var(--u)}
   .agent-name{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600}
   .agent-metrics{display:flex;gap:22px;margin-top:14px}
-  .metric .n{font-size:26px;font-weight:700;line-height:1;color:var(--good)}
+  .metric .n{font-size:26px;font-weight:700;line-height:1}
+  .metric .n.green{color:var(--good)} .metric .n.amber{color:var(--warn)}
   .metric .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
   .spark{margin-top:14px}
   .chart-sub{color:var(--muted);font-size:12px;margin:0 0 6px}
@@ -88,8 +88,8 @@
 <div class="wrap">
   <header class="top">
     <div class="title">
-      <h1>Nuumipet Support · Ticket Chiusi</h1>
-      <p>Zoho Desk — dipartimento Nuumipet Support · ticket chiusi per giornata</p>
+      <h1>Nuumipet Support · Ticket</h1>
+      <p>Zoho Desk — dipartimento Nuumipet Support · chiusi per giornata &amp; backlog aperto</p>
     </div>
     <div class="top-right">
       <div class="updated">Ultimo aggiornamento<br><b id="upd">—</b></div>
@@ -138,7 +138,6 @@
 <div class="tip" id="tip"></div>
 
 <script>
-/* Snapshot di fallback (usato se data.json non è raggiungibile, es. apertura locale) */
 let DATA=[
  {"d":"03/07","mc":0,"nc":0,"uc":0,"tc":0},{"d":"04/07","mc":0,"nc":13,"uc":0,"tc":13},
  {"d":"05/07","mc":0,"nc":16,"uc":0,"tc":16},{"d":"06/07","mc":0,"nc":0,"uc":0,"tc":0},
@@ -150,9 +149,10 @@ let DATA=[
  {"d":"17/07","mc":0,"nc":55,"uc":9,"tc":64},{"d":"18/07","mc":0,"nc":3,"uc":0,"tc":3},
  {"d":"19/07","mc":0,"nc":0,"uc":7,"tc":7},{"d":"20/07","mc":49,"nc":10,"uc":27,"tc":86},
  {"d":"21/07","mc":167,"nc":118,"uc":91,"tc":376},{"d":"22/07","mc":46,"nc":33,"uc":14,"tc":93},
- {"d":"23/07","mc":55,"nc":92,"uc":25,"tc":172},{"d":"24/07","mc":23,"nc":32,"uc":14,"tc":69,"partial":true}
+ {"d":"23/07","mc":55,"nc":92,"uc":25,"tc":172},{"d":"24/07","mc":46,"nc":35,"uc":15,"tc":96}
 ];
-let UPDATED="24/07/2026 15:15";
+let OPEN={m:1,n:34,u:1};
+let UPDATED="24/07/2026 23:42";
 const C={m:'var(--m)',n:'var(--n)',u:'var(--u)'};
 const tip=document.getElementById('tip');
 const NS='http://www.w3.org/2000/svg';
@@ -164,31 +164,36 @@ function renderAll(){
   const last=DATA[DATA.length-1];
   const cum=DATA.reduce((s,x)=>s+x.tc,0);
   const last7=DATA.slice(-7).reduce((s,x)=>s+x.tc,0);
+  const openTot=(OPEN.m||0)+(OPEN.n||0)+(OPEN.u||0);
   document.getElementById('upd').textContent=UPDATED;
 
   document.getElementById('kpis').innerHTML=`
     <div class="card kpi"><h3>Chiusi oggi (${last.d})</h3><div class="big green">${last.tc}</div>
       <div class="sub"><span class="chip"><span class="dot m"></span>${last.mc}</span><span class="chip"><span class="dot n"></span>${last.nc}</span><span class="chip"><span class="dot u"></span>${last.uc}</span></div></div>
+    <div class="card kpi"><h3>Aperti da gestire ora</h3><div class="big amber">${openTot}</div>
+      <div class="sub"><span class="chip"><span class="dot m"></span>${OPEN.m||0}</span><span class="chip"><span class="dot n"></span>${OPEN.n||0}</span><span class="chip"><span class="dot u"></span>${OPEN.u||0}</span></div></div>
     <div class="card kpi"><h3>Chiusi ultimi 7 giorni</h3><div class="big">${last7.toLocaleString('it-IT')}</div><div class="sub">media ${Math.round(last7/7)} / giorno</div></div>
     <div class="card kpi"><h3>Chiusi totali (dal 03/07)</h3><div class="big">${cum.toLocaleString('it-IT')}</div><div class="sub">${DATA.length} giorni tracciati</div></div>`;
 
-  const agents=[{name:'Mavreen',cls:'m',k:'mc'},{name:'Nicole',cls:'n',k:'nc'},{name:'Non assegnati',cls:'u',k:'uc'}];
+  const agents=[{name:'Mavreen',cls:'m',k:'mc',o:'m'},{name:'Nicole',cls:'n',k:'nc',o:'n'},{name:'Non assegnati',cls:'u',k:'uc',o:'u'}];
   document.getElementById('agents').innerHTML=agents.map(a=>`
     <div class="card"><span class="agent-name"><span class="dot ${a.cls}"></span>${a.name}</span>
-      <div class="agent-metrics"><div class="metric"><div class="n">${last[a.k]}</div><div class="l">chiusi oggi</div></div>
-      <div class="metric"><div class="n" style="color:var(--ink)">${DATA.reduce((s,x)=>s+x[a.k],0)}</div><div class="l">totale periodo</div></div></div>
+      <div class="agent-metrics">
+        <div class="metric"><div class="n green">${last[a.k]}</div><div class="l">chiusi oggi</div></div>
+        <div class="metric"><div class="n amber">${OPEN[a.o]||0}</div><div class="l">aperti da gestire</div></div>
+      </div>
       ${sparkline(a.k,C[a.cls])}
       <div class="l" style="color:var(--muted);font-size:11px;margin-top:6px">andamento chiusi · ${DATA.length} giorni</div></div>`).join('');
 
   document.getElementById('barChart').innerHTML='';barChart();
   totBars();
 
-  document.querySelector('#histTable tbody').innerHTML=DATA.map(r=>`
-    <tr class="${r.partial?'today':''}">
-      <td>${r.d}${r.partial?' *':''}</td>
+  document.querySelector('#histTable tbody').innerHTML=DATA.map((r,i)=>`
+    <tr class="${i===DATA.length-1?'today':''}">
+      <td>${r.d}</td>
       <td class="cm gsep">${r.mc}</td><td class="cn gsep">${r.nc}</td><td class="cu gsep">${r.uc}</td><td class="tot gsep">${r.tc}</td>
     </tr>`).join('');
-  document.getElementById('note').innerHTML=`<b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno indicato (fuso Europe/Brussels, orario dell'organizzazione Zoho). La riga con * è il giorno in corso (parziale). Totale ticket chiusi dal 03/07: <b>${cum.toLocaleString('it-IT')}</b>.`;
+  document.getElementById('note').innerHTML=`<b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno indicato (fuso Europe/Brussels). «Aperti da gestire» = ticket non ancora chiusi in questo momento (stato Open + On Hold), snapshot corrente. Totale chiusi dal 03/07: <b>${cum.toLocaleString('it-IT')}</b>.`;
 }
 
 function sparkline(key,color){
@@ -198,7 +203,6 @@ function sparkline(key,color){
   const lp=pts[pts.length-1];
   return `<svg viewBox="0 0 ${w} ${h}" class="spark"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="3" fill="${color}"/></svg>`;
 }
-
 function barChart(){
   const W=620,H=320,pl=34,pr=8,pt=14,pb=26,plotW=W-pl-pr,plotH=H-pt-pb,n=DATA.length;
   const max=niceMax(Math.max(...DATA.map(x=>x.tc),1)),gap=plotW/n,bw=Math.min(20,gap*0.66);
@@ -214,7 +218,6 @@ function barChart(){
     showTip(`<div class="hd">${r.d} — chiusi ${r.tc}</div><div class="row"><span class="lab"><span class="dot m"></span>Mavreen</span><span class="val">${r.mc}</span></div><div class="row"><span class="lab"><span class="dot n"></span>Nicole</span><span class="val">${r.nc}</span></div><div class="row"><span class="lab"><span class="dot u"></span>Non ass.</span><span class="val">${r.uc}</span></div>`,e.clientX,e.clientY);});
     el.addEventListener('mouseleave',hideTip);});
 }
-
 function totBars(){
   const tot={Mavreen:{v:DATA.reduce((s,x)=>s+x.mc,0),c:C.m},Nicole:{v:DATA.reduce((s,x)=>s+x.nc,0),c:C.n},'Non assegnati':{v:DATA.reduce((s,x)=>s+x.uc,0),c:C.u}};
   const max=Math.max(1,...Object.values(tot).map(o=>o.v));
@@ -223,12 +226,10 @@ function totBars(){
     <div class="hbar-track"><div class="hbar-fill" style="width:${(o.v/max*100).toFixed(1)}%;background:${o.c}"></div></div>
     <div class="hbar-val">${o.v.toLocaleString('it-IT')}</div></div>`).join('');
 }
-
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 
-/* Sorgente dati primaria: data.json (aggiornato ogni sera dall'automazione). Fallback: snapshot embedded. */
-fetch('data.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;}}).catch(()=>{}).finally(renderAll);
+fetch('data.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;if(j.open)OPEN=j.open;}}).catch(()=>{}).finally(renderAll);
 </script>
 </body>
 </html>
