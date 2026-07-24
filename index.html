@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuumipet Support · Ticket Health</title>
+<style>
+  :root{
+    --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#212120;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10); --gsep:rgba(255,255,255,0.22);
+    --m:#3987e5;  /* Mavreen  */
+    --n:#d95926;  /* Nicole   */
+    --u:#199e70;  /* Non ass. */
+    --good:#0ca30c; --warn:#fab219;
+    --shadow:0 1px 0 rgba(255,255,255,0.02), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  html[data-theme="light"]{
+    --plane:#f4f4f1; --surface:#ffffff; --surface-2:#faf9f7;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e6e5df; --axis:#c3c2b7; --border:rgba(11,11,11,0.10); --gsep:rgba(11,11,11,0.22);
+    --m:#2a78d6; --n:#eb6834; --u:#1baf7a; --good:#0ca30c; --warn:#e0a000;
+    --shadow:0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--plane); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.4;
+    padding:22px clamp(14px,3vw,36px) 60px;
+  }
+  a{color:var(--m)}
+  .wrap{max-width:1180px;margin:0 auto}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px}
+  .title h1{font-size:clamp(20px,2.6vw,28px);margin:0;letter-spacing:-.2px}
+  .title p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .top-right{display:flex;align-items:center;gap:14px}
+  .updated{color:var(--muted);font-size:12px;text-align:right}
+  .updated b{color:var(--ink-2);font-weight:600}
+  .tbtn{cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--ink-2);
+    border-radius:999px;padding:7px 13px;font-size:12px;font-weight:600}
+  .tbtn:hover{color:var(--ink)}
+
+  .grid{display:grid;gap:14px}
+  .kpis{grid-template-columns:repeat(3,1fr);margin-bottom:14px}
+  .agents{grid-template-columns:repeat(3,1fr);margin-bottom:22px}
+  .charts{grid-template-columns:1fr 1fr;margin-bottom:22px}
+  @media(max-width:860px){.kpis,.agents,.charts{grid-template-columns:1fr}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+  .card h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .kpi .big{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-1px;margin:8px 0 2px;line-height:1}
+  .kpi .big.green{color:var(--good)}
+  .kpi .sub{font-size:13px;color:var(--ink-2)}
+  .chip{display:inline-flex;align-items:center;gap:6px;margin-right:10px;white-space:nowrap}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+  .dot.m{background:var(--m)} .dot.n{background:var(--n)} .dot.u{background:var(--u)}
+
+  .agent-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .agent-name{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600}
+  .agent-metrics{display:flex;gap:22px;margin-top:14px}
+  .metric .n{font-size:26px;font-weight:700;line-height:1}
+  .metric .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+  .metric .n.green{color:var(--good)}
+  .spark{margin-top:14px}
+
+  .chart-card h3{margin-bottom:2px}
+  .chart-sub{color:var(--muted);font-size:12px;margin:0 0 6px}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:2px 0 10px;font-size:12px;color:var(--ink-2)}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .gl{stroke:var(--grid);stroke-width:1}
+  .axl{fill:var(--muted);font-size:11px}
+  .axl.tab{font-variant-numeric:tabular-nums}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  .table-card{overflow-x:auto}
+  th,td{padding:7px 12px;text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-weight:600;font-size:11px;letter-spacing:.05em}
+  .grp th{text-align:center;text-transform:uppercase;padding:2px 12px 6px;font-size:11px;letter-spacing:.07em}
+  .grp th.cm{color:var(--m)} .grp th.cn{color:var(--n)} .grp th.cu{color:var(--u)} .grp th.tot{color:var(--ink)}
+  .sub th{color:var(--muted);text-transform:none;border-bottom:1px solid var(--border);padding-top:0;font-weight:600}
+  .sub th:first-child{text-transform:uppercase;letter-spacing:.05em}
+  tbody tr:nth-child(even){background:var(--surface-2)}
+  tbody td{border-bottom:1px solid var(--border)}
+  tbody tr.today td{font-weight:700;background:rgba(12,163,12,0.08)}
+  .gsep{border-left:2px solid var(--gsep)}
+  .cm{color:var(--m)}.cn{color:var(--n)}.cu{color:var(--u)}
+  .tot{color:var(--ink);font-weight:600}
+  td.tot{font-weight:600}
+  .note{color:var(--muted);font-size:12px;margin-top:16px;line-height:1.6}
+  .tip{position:fixed;pointer-events:none;z-index:20;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:10px;padding:9px 11px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);opacity:0;transition:opacity .08s;min-width:150px}
+  .tip b{font-weight:600}
+  .tip .row{display:flex;justify-content:space-between;gap:14px;margin-top:3px}
+  .tip .row .lab{display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+  .tip .row .val{font-variant-numeric:tabular-nums;font-weight:600}
+  .tip .hd{font-weight:700;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="title">
+      <h1>Nuumipet Support · Ticket Health</h1>
+      <p>Zoho Desk — dipartimento Nuumipet Support · agenti Mavreen &amp; Nicole</p>
+    </div>
+    <div class="top-right">
+      <div class="updated">Ultimo aggiornamento<br><b id="upd">24/07/2026 15:15</b></div>
+      <button class="tbtn" id="themeBtn">☀︎ Tema chiaro</button>
+    </div>
+  </header>
+
+  <section class="grid kpis" id="kpis"></section>
+  <section class="grid agents" id="agents"></section>
+
+  <section class="grid charts">
+    <div class="card chart-card">
+      <h3>Ticket chiusi al giorno</h3>
+      <p class="chart-sub">per agente · barre impilate</p>
+      <div class="legend">
+        <span class="chip"><span class="dot m"></span>Mavreen</span>
+        <span class="chip"><span class="dot n"></span>Nicole</span>
+        <span class="chip"><span class="dot u"></span>Non assegnati</span>
+      </div>
+      <div id="barChart"></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Backlog aperti a fine giornata</h3>
+      <p class="chart-sub">ticket non chiusi (Open + On&nbsp;Hold) · linee per agente</p>
+      <div class="legend">
+        <span class="chip"><span class="dot m"></span>Mavreen</span>
+        <span class="chip"><span class="dot n"></span>Nicole</span>
+        <span class="chip"><span class="dot u"></span>Non assegnati</span>
+      </div>
+      <div id="lineChart"></div>
+    </div>
+  </section>
+
+  <div class="card table-card">
+    <h3 style="margin-bottom:10px">Storico giornaliero</h3>
+    <table id="histTable">
+      <thead>
+        <tr class="grp">
+          <th></th>
+          <th colspan="2" class="cm gsep">Mavreen</th>
+          <th colspan="2" class="cn gsep">Nicole</th>
+          <th colspan="2" class="cu gsep">Non assegnati</th>
+          <th colspan="2" class="tot gsep">Totale</th>
+        </tr>
+        <tr class="sub">
+          <th>Data</th>
+          <th class="gsep">Chiusi</th><th>Aperti</th>
+          <th class="gsep">Chiusi</th><th>Aperti</th>
+          <th class="gsep">Chiusi</th><th>Aperti</th>
+          <th class="gsep">Chiusi</th><th>Aperti</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p class="note">
+      <b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno (fuso Europe/Brussels) — dato <b>esatto</b>.
+      «Aperti (non chiusi)» = ticket in stato Open + On&nbsp;Hold. Per lo storico 03–23/07 gli aperti a fine giornata sono
+      <b>ricostruiti</b> dai dati attuali (assegnatario corrente): valore approssimativo. La riga del giorno in corso è parziale.
+      Totale ticket chiusi dal 03/07: <b>1.019</b>.
+    </p>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = [
+ {d:"03/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:1,ua:0,ta:1},
+ {d:"04/07",mc:0,nc:13,uc:0,tc:13,ma:0,na:16,ua:0,ta:16},
+ {d:"05/07",mc:0,nc:16,uc:0,tc:16,ma:0,na:3,ua:0,ta:3},
+ {d:"06/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:3,ua:0,ta:3},
+ {d:"07/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:3,ua:1,ta:4},
+ {d:"08/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:3,ua:1,ta:4},
+ {d:"09/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:4,ua:2,ta:6},
+ {d:"10/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:4,ua:3,ta:7},
+ {d:"11/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:5,ua:5,ta:10},
+ {d:"12/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:5,ua:5,ta:10},
+ {d:"13/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:5,ua:6,ta:11},
+ {d:"14/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:5,ua:12,ta:17},
+ {d:"15/07",mc:0,nc:0,uc:0,tc:0,ma:0,na:21,ua:101,ta:122},
+ {d:"16/07",mc:0,nc:6,uc:114,tc:120,ma:1,na:48,ua:47,ta:96},
+ {d:"17/07",mc:0,nc:55,uc:9,tc:64,ma:1,na:47,ua:48,ta:96},
+ {d:"18/07",mc:0,nc:3,uc:0,tc:3,ma:6,na:52,ua:88,ta:146},
+ {d:"19/07",mc:0,nc:0,uc:7,tc:7,ma:55,na:55,ua:100,ta:210},
+ {d:"20/07",mc:49,nc:10,uc:27,tc:86,ma:69,na:134,ua:80,ta:283},
+ {d:"21/07",mc:167,nc:118,uc:91,tc:376,ma:14,na:54,ua:11,ta:79},
+ {d:"22/07",mc:46,nc:33,uc:14,tc:93,ma:46,na:60,ua:19,ta:125},
+ {d:"23/07",mc:55,nc:92,uc:25,tc:172,ma:21,na:24,ua:14,ta:59},
+ {d:"24/07",mc:23,nc:32,uc:14,tc:69,ma:6,na:7,ua:4,ta:17,partial:true}
+];
+const C={m:'var(--m)',n:'var(--n)',u:'var(--u)'};
+const tip=document.getElementById('tip');
+const last=DATA[DATA.length-1];
+const cumClosed=DATA.reduce((s,x)=>s+x.tc,0);
+const NS='http://www.w3.org/2000/svg';
+
+/* ---------- KPI tiles ---------- */
+document.getElementById('kpis').innerHTML=`
+  <div class="card kpi">
+    <h3>Chiusi oggi (${last.d})</h3>
+    <div class="big green">${last.tc}</div>
+    <div class="sub"><span class="chip"><span class="dot m"></span>${last.mc}</span><span class="chip"><span class="dot n"></span>${last.nc}</span><span class="chip"><span class="dot u"></span>${last.uc}</span></div>
+  </div>
+  <div class="card kpi">
+    <h3>Backlog aperti ora</h3>
+    <div class="big">${last.ta}</div>
+    <div class="sub"><span class="chip"><span class="dot m"></span>${last.ma}</span><span class="chip"><span class="dot n"></span>${last.na}</span><span class="chip"><span class="dot u"></span>${last.ua}</span></div>
+  </div>
+  <div class="card kpi">
+    <h3>Chiusi totali (dal 03/07)</h3>
+    <div class="big">${cumClosed.toLocaleString('it-IT')}</div>
+    <div class="sub">${DATA.length} giorni tracciati</div>
+  </div>`;
+
+/* ---------- Agent cards with sparkline ---------- */
+function sparkline(key,color){
+  const w=180,h=40,vals=DATA.map(x=>x[key]),max=Math.max(1,...vals);
+  const pts=vals.map((v,i)=>[ (i/(vals.length-1))*w, h-2-(v/max)*(h-6) ]);
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const lp=pts[pts.length-1];
+  return `<svg viewBox="0 0 ${w} ${h}" class="spark"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="3" fill="${color}"/></svg>`;
+}
+const agents=[
+  {name:'Mavreen',cls:'m',ck:'mc',ak:'ma'},
+  {name:'Nicole',cls:'n',ck:'nc',ak:'na'},
+  {name:'Non assegnati',cls:'u',ck:'uc',ak:'ua'}
+];
+document.getElementById('agents').innerHTML=agents.map(a=>`
+  <div class="card">
+    <div class="agent-head">
+      <span class="agent-name"><span class="dot ${a.cls}"></span>${a.name}</span>
+    </div>
+    <div class="agent-metrics">
+      <div class="metric"><div class="n green">${last[a.ck]}</div><div class="l">chiusi oggi</div></div>
+      <div class="metric"><div class="n">${last[a.ak]}</div><div class="l">aperti ora</div></div>
+    </div>
+    ${sparkline(a.ck, C[a.cls])}
+    <div class="l" style="color:var(--muted);font-size:11px;margin-top:6px">andamento chiusi · 22 giorni</div>
+  </div>`).join('');
+
+/* ---------- helpers ---------- */
+function niceMax(v){const steps=[10,20,50,100,150,200,300,400,500];for(const s of steps)if(v<=s)return s;return Math.ceil(v/100)*100;}
+function showTip(html,x,y){tip.innerHTML=html;tip.style.opacity=1;const r=tip.getBoundingClientRect();let nx=x+14,ny=y-10;if(nx+r.width>window.innerWidth-8)nx=x-r.width-14;if(ny+r.height>window.innerHeight-8)ny=window.innerHeight-r.height-8;if(ny<8)ny=8;tip.style.left=nx+'px';tip.style.top=ny+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+/* ---------- Stacked bar chart ---------- */
+function barChart(){
+  const W=560,H=320,pl=34,pr=8,pt=14,pb=26;
+  const plotW=W-pl-pr, plotH=H-pt-pb, n=DATA.length;
+  const max=niceMax(Math.max(...DATA.map(x=>x.tc)));
+  const bw=Math.min(20, plotW/n*0.66), gap=(plotW/n);
+  const y=v=>pt+plotH-(v/max)*plotH;
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  let g='';
+  for(let t=0;t<=max;t+=max/4){const yy=y(t).toFixed(1);g+=`<line class="gl" x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}"/><text class="axl tab" x="${pl-6}" y="${(+yy+3).toFixed(1)}" text-anchor="end">${t}</text>`;}
+  DATA.forEach((row,i)=>{
+    const cx=pl+gap*i+gap/2, x=cx-bw/2;
+    let acc=0;const segs=[['mc',C.m],['nc',C.n],['uc',C.u]];
+    segs.forEach(([k,col])=>{
+      const v=row[k];if(v>0){const h=(v/max)*plotH;const yTop=y(acc+v),yBot=y(acc);
+        const hh=Math.max(1,yBot-yTop-1);
+        g+=`<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="1.5" fill="${col}"/>`;acc+=v;}
+    });
+    // hover hit area (full column height)
+    g+=`<rect x="${(cx-gap/2).toFixed(1)}" y="${pt}" width="${gap.toFixed(1)}" height="${plotH}" fill="transparent" data-i="${i}" class="barhit"/>`;
+    if(i%3===0||i===n-1)g+=`<text class="axl tab" x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${row.d.slice(0,2)}</text>`;
+  });
+  svg.innerHTML=g;
+  document.getElementById('barChart').appendChild(svg);
+  svg.querySelectorAll('.barhit').forEach(el=>{
+    el.addEventListener('mousemove',e=>{const r=DATA[+el.dataset.i];
+      showTip(`<div class="hd">${r.d} — chiusi ${r.tc}</div>
+        <div class="row"><span class="lab"><span class="dot m"></span>Mavreen</span><span class="val">${r.mc}</span></div>
+        <div class="row"><span class="lab"><span class="dot n"></span>Nicole</span><span class="val">${r.nc}</span></div>
+        <div class="row"><span class="lab"><span class="dot u"></span>Non ass.</span><span class="val">${r.uc}</span></div>`,e.clientX,e.clientY);});
+    el.addEventListener('mouseleave',hideTip);
+  });
+}
+
+/* ---------- Line chart (backlog) ---------- */
+function lineChart(){
+  const W=560,H=320,pl=34,pr=8,pt=14,pb=26;
+  const plotW=W-pl-pr, plotH=H-pt-pb, n=DATA.length;
+  const max=niceMax(Math.max(...DATA.map(x=>x.ta)));
+  const x=i=>pl+(i/(n-1))*plotW, y=v=>pt+plotH-(v/max)*plotH;
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  let g='';
+  for(let t=0;t<=max;t+=max/4){const yy=y(t).toFixed(1);g+=`<line class="gl" x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}"/><text class="axl tab" x="${pl-6}" y="${(+yy+3).toFixed(1)}" text-anchor="end">${t}</text>`;}
+  DATA.forEach((row,i)=>{if(i%3===0||i===n-1)g+=`<text class="axl tab" x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${row.d.slice(0,2)}</text>`;});
+  const series=[['ma',C.m],['na',C.n],['ua',C.u]];
+  series.forEach(([k,col])=>{
+    const d=DATA.map((r,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(r[k]).toFixed(1)).join(' ');
+    g+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  // crosshair + markers group
+  g+=`<line id="cx" class="gl" x1="0" y1="${pt}" x2="0" y2="${pt+plotH}" style="opacity:0;stroke:var(--axis)"/>`;
+  series.forEach(([k,col],si)=>{g+=`<circle class="mk mk${si}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2" style="opacity:0"/>`;});
+  g+=`<rect x="${pl}" y="${pt}" width="${plotW}" height="${plotH}" fill="transparent" id="lhit"/>`;
+  svg.innerHTML=g;
+  document.getElementById('lineChart').appendChild(svg);
+  const hit=svg.querySelector('#lhit'),cxl=svg.querySelector('#cx'),mks=[...svg.querySelectorAll('.mk')];
+  hit.addEventListener('mousemove',e=>{
+    const box=svg.getBoundingClientRect();const px=(e.clientX-box.left)/box.width*W;
+    let i=Math.round((px-pl)/plotW*(n-1));i=Math.max(0,Math.min(n-1,i));const r=DATA[i];
+    cxl.setAttribute('x1',x(i));cxl.setAttribute('x2',x(i));cxl.style.opacity=1;
+    series.forEach(([k],si)=>{mks[si].setAttribute('cx',x(i));mks[si].setAttribute('cy',y(r[k]));mks[si].style.opacity=1;});
+    showTip(`<div class="hd">${r.d} — backlog ${r.ta}</div>
+      <div class="row"><span class="lab"><span class="dot m"></span>Mavreen</span><span class="val">${r.ma}</span></div>
+      <div class="row"><span class="lab"><span class="dot n"></span>Nicole</span><span class="val">${r.na}</span></div>
+      <div class="row"><span class="lab"><span class="dot u"></span>Non ass.</span><span class="val">${r.ua}</span></div>`,e.clientX,e.clientY);
+  });
+  hit.addEventListener('mouseleave',()=>{hideTip();cxl.style.opacity=0;mks.forEach(m=>m.style.opacity=0);});
+}
+
+/* ---------- Table ---------- */
+document.querySelector('#histTable tbody').innerHTML=DATA.map(r=>`
+  <tr class="${r.partial?'today':''}">
+    <td>${r.d}${r.partial?' *':''}</td>
+    <td class="cm gsep">${r.mc}</td><td class="cm">${r.ma}</td>
+    <td class="cn gsep">${r.nc}</td><td class="cn">${r.na}</td>
+    <td class="cu gsep">${r.uc}</td><td class="cu">${r.ua}</td>
+    <td class="tot gsep">${r.tc}</td><td class="tot">${r.ta}</td>
+  </tr>`).join('');
+
+barChart();lineChart();
+
+/* ---------- theme toggle ---------- */
+const tb=document.getElementById('themeBtn');
+tb.addEventListener('click',()=>{
+  const light=document.documentElement.getAttribute('data-theme')==='light';
+  document.documentElement.setAttribute('data-theme',light?'dark':'light');
+  tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';
+});
+</script>
+</body>
+</html>
