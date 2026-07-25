@@ -234,13 +234,24 @@ function totBars(){
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 
+/* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
+const WORKER="https://nuumipetdashcustomercare.ciandrinicole.workers.dev/";
+function applyLive(j){
+  if(!j||j.error) return;
+  if(j.open) OPEN=j.open;
+  if(j.updated) UPDATED=j.updated;
+  const t=j.today;
+  if(t&&t.d){const i=DATA.findIndex(x=>x.d===t.d); if(i>=0)DATA[i]=t; else DATA.push(t);}
+}
 function loadData(){
   const btn=document.getElementById('refreshBtn');
   if(btn){btn.disabled=true;btn.classList.add('spin');}
+  // 1) storico da data.json  2) sovrascrivo oggi + backlog con i dati LIVE dal ponte
   return fetch('data.json?t='+Date.now(),{cache:'no-store'})
     .then(r=>r.ok?r.json():Promise.reject())
     .then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;if(j.open)OPEN=j.open;}})
     .catch(()=>{})
+    .then(()=>fetch(WORKER+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(applyLive).catch(()=>{}))
     .finally(()=>{renderAll();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
