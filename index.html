@@ -240,7 +240,8 @@ function applyLive(j){
   if(!j||j.error) return;
   if(j.open) OPEN=j.open;
   if(j.updated) UPDATED=j.updated;
-  const t=j.today;
+  if(Array.isArray(j.days)&&j.days.length){ DATA=j.days; return; }  // storico completo dal ponte (con memoria KV)
+  const t=j.today;                                                   // altrimenti: sovrascrivo solo oggi
   if(t&&t.d){const i=DATA.findIndex(x=>x.d===t.d); if(i>=0)DATA[i]=t; else DATA.push(t);}
 }
 function loadData(){
