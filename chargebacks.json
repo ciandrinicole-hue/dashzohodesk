@@ -1,38 +1,580 @@
 {
-  "updated": "29/07/2026",
-  "scope": "Nuumipet + The Pawesome",
-  "total": {"n": 53, "a": 5061.61},
-  "byType": [
-    {"k": "Contestazione", "n": 37, "a": 3493.07},
-    {"k": "Frode", "n": 16, "a": 1568.54}
-  ],
-  "byReason": [
-    {"code": "104",  "label": "Fraud Card-Absent",         "type": "Frode",         "n": 16, "a": 1568.54},
-    {"code": "4853", "label": "Defective/Not as Described", "type": "Contestazione", "n": 7,  "a": 708.12},
-    {"code": "133",  "label": "Not as Described",           "type": "Contestazione", "n": 5,  "a": 390.74},
-    {"code": "131",  "label": "Not Received",               "type": "Contestazione", "n": 4,  "a": 358.05},
-    {"code": "4837", "label": "No Authorization",           "type": "Contestazione", "n": 3,  "a": 295.03},
-    {"code": "137",  "label": "Cancelled",                  "type": "Contestazione", "n": 3,  "a": 264.90},
-    {"code": "132",  "label": "Cancelled Recurring",        "type": "Contestazione", "n": 2,  "a": 220.18},
-    {"code": "4752", "label": "Declined Auth",              "type": "Contestazione", "n": 1,  "a": 188.69},
-    {"code": "1262", "label": "Paid Other Means",           "type": "Contestazione", "n": 2,  "a": 174.79},
-    {"code": "4868", "label": "Fraud CNP",                  "type": "Contestazione", "n": 2,  "a": 165.27},
-    {"code": "4855", "label": "Non-Receipt",                "type": "Contestazione", "n": 1,  "a": 154.76},
-    {"code": "1261", "label": "Duplicate",                  "type": "Contestazione", "n": 1,  "a": 146.79},
-    {"code": "4834", "label": "Duplicate",                  "type": "Contestazione", "n": 1,  "a": 118.06},
-    {"code": "135",  "label": "Misrepresentation",          "type": "Contestazione", "n": 1,  "a": 110.09},
-    {"code": "4860", "label": "Credit Not Processed",       "type": "Contestazione", "n": 2,  "a": 103.80},
-    {"code": "4555", "label": "Credit Not Received",        "type": "Contestazione", "n": 1,  "a": 51.90},
-    {"code": "125",  "label": "Incorrect Amount",           "type": "Contestazione", "n": 1,  "a": 41.90}
-  ],
-  "byProduct": [
-    {"k": "CalmiCollar (abbonamento)",  "cont": 2957.59, "cb": 2},
-    {"k": "CalmiCollar",                "cont": 961.30,  "cb": 2},
-    {"k": "Leash Walk Formula",         "cont": 752.00,  "cb": 9},
-    {"k": "WonderWalk",                 "cont": 290.00,  "cb": 0},
-    {"k": "Up 4%",                      "cont": 270.24,  "cb": 0},
-    {"k": "EnerCanis (abbonamento)",    "cont": 141.00,  "cb": 0},
-    {"k": "The Four-Leaf Dog Training", "cont": 97.00,   "cb": 0},
-    {"k": "Shipping Protection",        "cont": 25.89,   "cb": 2}
-  ]
+ "updated": "29/07/2026",
+ "scope": "Nuumipet + The Pawesome",
+ "total": {
+  "n": 64,
+  "a": 6311.02
+ },
+ "dated": {
+  "n": 55,
+  "a": 5305.51
+ },
+ "byType": [
+  {
+   "k": "Contestazione",
+   "n": 43,
+   "a": 4338.9
+  },
+  {
+   "k": "Frode",
+   "n": 21,
+   "a": 1972.12
+  }
+ ],
+ "byReason": [
+  {
+   "code": "104",
+   "label": "Fraud Card-Absent",
+   "type": "Frode",
+   "n": 21,
+   "a": 1972.12
+  },
+  {
+   "code": "4853",
+   "label": "Defective/Not as Described",
+   "type": "Contestazione",
+   "n": 7,
+   "a": 708.12
+  },
+  {
+   "code": "137",
+   "label": "Cancelled",
+   "type": "Contestazione",
+   "n": 5,
+   "a": 603.29
+  },
+  {
+   "code": "4837",
+   "label": "No Authorization",
+   "type": "Contestazione",
+   "n": 4,
+   "a": 483.72
+  },
+  {
+   "code": "133",
+   "label": "Not as Described",
+   "type": "Contestazione",
+   "n": 5,
+   "a": 390.74
+  },
+  {
+   "code": "131",
+   "label": "Not Received",
+   "type": "Contestazione",
+   "n": 4,
+   "a": 358.05
+  },
+  {
+   "code": "C08",
+   "label": "Goods Not Received",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 243.9
+  },
+  {
+   "code": "132",
+   "label": "Cancelled Recurring",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 220.18
+  },
+  {
+   "code": "4834",
+   "label": "Duplicate",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 192.91
+  },
+  {
+   "code": "4752",
+   "label": "Declined Auth",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 188.69
+  },
+  {
+   "code": "1262",
+   "label": "Paid Other Means",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 174.79
+  },
+  {
+   "code": "4868",
+   "label": "Fraud CNP",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 165.27
+  },
+  {
+   "code": "4855",
+   "label": "Non-Receipt",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 154.76
+  },
+  {
+   "code": "1261",
+   "label": "Duplicate",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 146.79
+  },
+  {
+   "code": "135",
+   "label": "Misrepresentation",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 110.09
+  },
+  {
+   "code": "4860",
+   "label": "Credit Not Processed",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 103.8
+  },
+  {
+   "code": "4555",
+   "label": "Credit Not Received",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 51.9
+  },
+  {
+   "code": "125",
+   "label": "Incorrect Amount",
+   "type": "Contestazione",
+   "n": 1,
+   "a": 41.9
+  }
+ ],
+ "byProduct": [
+  {
+   "k": "CalmiCollar (abbonamento)",
+   "cont": 2957.59,
+   "cb": 2
+  },
+  {
+   "k": "CalmiCollar",
+   "cont": 961.3,
+   "cb": 2
+  },
+  {
+   "k": "Leash Walk Formula",
+   "cont": 752.0,
+   "cb": 9
+  },
+  {
+   "k": "WonderWalk",
+   "cont": 290.0,
+   "cb": 0
+  },
+  {
+   "k": "Up 4%",
+   "cont": 270.24,
+   "cb": 0
+  },
+  {
+   "k": "EnerCanis (abbonamento)",
+   "cont": 141.0,
+   "cb": 0
+  },
+  {
+   "k": "The Four-Leaf Dog Training",
+   "cont": 97.0,
+   "cb": 0
+  },
+  {
+   "k": "Shipping Protection",
+   "cont": 25.89,
+   "cb": 2
+  }
+ ],
+ "records": [
+  {
+   "date": "2026-04-03",
+   "amount": 188.69,
+   "code": "4752",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-05",
+   "amount": 188.69,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-06",
+   "amount": 74.85,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-06",
+   "amount": 110.09,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-08",
+   "amount": 74.85,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-08",
+   "amount": 133.81,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-14",
+   "amount": 110.09,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-16",
+   "amount": 110.09,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-18",
+   "amount": 118.06,
+   "code": "4834",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-20",
+   "amount": 118.06,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-21",
+   "amount": 154.76,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-21",
+   "amount": 99.8,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-24",
+   "amount": 118.06,
+   "code": "C08",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-29",
+   "amount": 59.87,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-05",
+   "amount": 146.79,
+   "code": "1261",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-07",
+   "amount": 110.09,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-08",
+   "amount": 51.9,
+   "code": "133",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-08",
+   "amount": 125.84,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-09",
+   "amount": 125.84,
+   "code": "C08",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-10",
+   "amount": 110.09,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-12",
+   "amount": 49.0,
+   "code": "1262",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-12",
+   "amount": 125.79,
+   "code": "1262",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-16",
+   "amount": 81.37,
+   "code": "4868",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-16",
+   "amount": 110.09,
+   "code": "132",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-20",
+   "amount": 110.09,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-05",
+   "amount": 41.9,
+   "code": "125",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-29",
+   "amount": 83.9,
+   "code": "4868",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-03",
+   "amount": 78.0,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-08",
+   "amount": 110.09,
+   "code": "132",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-22",
+   "amount": 51.9,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-22",
+   "amount": 34.9,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-22",
+   "amount": 48.95,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-26",
+   "amount": 51.9,
+   "code": "4555",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-10",
+   "amount": 74.85,
+   "code": "133",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-10",
+   "amount": 110.09,
+   "code": "133",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-11",
+   "amount": 51.9,
+   "code": "133",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-21",
+   "amount": 51.9,
+   "code": "4860",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-21",
+   "amount": 51.9,
+   "code": "4860",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-21",
+   "amount": 102.0,
+   "code": "133",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-16",
+   "amount": 51.9,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-05",
+   "amount": 74.85,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-10",
+   "amount": 110.09,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-13",
+   "amount": 118.06,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-13",
+   "amount": 36.75,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-13",
+   "amount": 110.09,
+   "code": "135",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-05",
+   "amount": 110.09,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-05",
+   "amount": 110.09,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-01",
+   "amount": 154.76,
+   "code": "4855",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-25",
+   "amount": 118.06,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-25",
+   "amount": 74.85,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-05-25",
+   "amount": 110.09,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-04-19",
+   "amount": 118.06,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-04-19",
+   "amount": 36.75,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-05-19",
+   "amount": 110.09,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-06-05",
+   "amount": 110.09,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 24.5,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 49.15,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 120.04,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 149.7,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": null,
+   "amount": 188.69,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": null,
+   "amount": 74.85,
+   "code": "4834",
+   "type": "Contestazione"
+  },
+  {
+   "date": null,
+   "amount": 89.85,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 120.04,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": null,
+   "amount": 188.69,
+   "code": "4837",
+   "type": "Contestazione"
+  }
+ ]
 }

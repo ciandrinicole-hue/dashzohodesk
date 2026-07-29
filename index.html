@@ -120,6 +120,11 @@
   .collapse-hd .cnt-tag{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px;margin-left:8px}
   .collapse-body{margin-top:12px}
   .collapse-body[hidden]{display:none}
+  .cb-sub-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin:24px 0 12px}
+  .cb-sub-title{margin:0;font-size:clamp(15px,1.7vw,18px);font-weight:600;letter-spacing:-.2px;color:var(--ink);text-transform:none}
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:3px}
+  .seg button{background:none;border:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:600;padding:6px 15px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:var(--m);color:#fff}
 </style>
 </head>
 <body>
@@ -218,6 +223,20 @@
     <p class="chart-sub">ordinato per importo · barra = $ · <span style="color:var(--warn)">■</span> Frode · <span style="color:var(--m)">■</span> Contestazione</p>
     <div id="cbReason" style="margin-top:14px"></div>
   </div>
+
+  <div class="cb-sub-head">
+    <div>
+      <h3 class="cb-sub-title">Andamento nel tempo</h3>
+      <p class="chart-sub" style="margin:3px 0 0">chargeback per periodo · <span id="cbTimeInfo"></span></p>
+    </div>
+    <div class="seg" id="cbGran">
+      <button type="button" data-g="month" class="on">Mese</button>
+      <button type="button" data-g="week">Settimana</button>
+      <button type="button" data-g="day">Giorno</button>
+    </div>
+  </div>
+  <div class="card"><div id="cbTime" style="max-height:440px;overflow:auto"></div></div>
+
   <p class="note" id="cbNote"></p>
 </div>
 <div class="tip" id="tip"></div>
@@ -326,53 +345,23 @@ function totBars(){
 }
 /* ===== Chargeback & contestazioni ===== */
 const CB={
-  updated:"29/07/2026",
-  scope:"Nuumipet + The Pawesome",
-  total:{n:53,a:5061.61},
-  byType:[
-    {k:"Contestazione",n:37,a:3493.07},
-    {k:"Frode",n:16,a:1568.54}
-  ],
-  byReason:[
-    {code:"104", label:"Fraud Card-Absent",        type:"Frode",         n:16, a:1568.54},
-    {code:"4853",label:"Defective/Not as Described",type:"Contestazione", n:7,  a:708.12},
-    {code:"133", label:"Not as Described",         type:"Contestazione", n:5,  a:390.74},
-    {code:"131", label:"Not Received",             type:"Contestazione", n:4,  a:358.05},
-    {code:"4837",label:"No Authorization",         type:"Contestazione", n:3,  a:295.03},
-    {code:"137", label:"Cancelled",                type:"Contestazione", n:3,  a:264.90},
-    {code:"132", label:"Cancelled Recurring",      type:"Contestazione", n:2,  a:220.18},
-    {code:"4752",label:"Declined Auth",            type:"Contestazione", n:1,  a:188.69},
-    {code:"1262",label:"Paid Other Means",         type:"Contestazione", n:2,  a:174.79},
-    {code:"4868",label:"Fraud CNP",                type:"Contestazione", n:2,  a:165.27},
-    {code:"4855",label:"Non-Receipt",              type:"Contestazione", n:1,  a:154.76},
-    {code:"1261",label:"Duplicate",                type:"Contestazione", n:1,  a:146.79},
-    {code:"4834",label:"Duplicate",                type:"Contestazione", n:1,  a:118.06},
-    {code:"135", label:"Misrepresentation",        type:"Contestazione", n:1,  a:110.09},
-    {code:"4860",label:"Credit Not Processed",     type:"Contestazione", n:2,  a:103.80},
-    {code:"4555",label:"Credit Not Received",      type:"Contestazione", n:1,  a:51.90},
-    {code:"125", label:"Incorrect Amount",         type:"Contestazione", n:1,  a:41.90}
-  ],
-  // Per prodotto: importo contestato ($) dalla tabella riepilogo "refund tracker";
-  // cb = n. chargeback con prodotto tracciato (dai tab Rimborsi Avvenuti USA + usa/conti ita)
-  byProduct:[
-    {k:"CalmiCollar (abbonamento)",  cont:2957.59, cb:2},
-    {k:"CalmiCollar",                cont:961.30,  cb:2},
-    {k:"Leash Walk Formula",         cont:752.00,  cb:9},
-    {k:"WonderWalk",                 cont:290.00,  cb:0},
-    {k:"Up 4%",                      cont:270.24,  cb:0},
-    {k:"EnerCanis (abbonamento)",    cont:141.00,  cb:0},
-    {k:"The Four-Leaf Dog Training", cont:97.00,   cb:0},
-    {k:"Shipping Protection",        cont:25.89,   cb:2}
-  ]
+  updated:"29/07/2026", scope:"Nuumipet + The Pawesome",
+  total:{"n": 64, "a": 6311.02}, dated:{"n": 55, "a": 5305.51},
+  byType:[{"k": "Contestazione", "n": 43, "a": 4338.9}, {"k": "Frode", "n": 21, "a": 1972.12}],
+  byReason:[{"code": "104", "label": "Fraud Card-Absent", "type": "Frode", "n": 21, "a": 1972.12}, {"code": "4853", "label": "Defective/Not as Described", "type": "Contestazione", "n": 7, "a": 708.12}, {"code": "137", "label": "Cancelled", "type": "Contestazione", "n": 5, "a": 603.29}, {"code": "4837", "label": "No Authorization", "type": "Contestazione", "n": 4, "a": 483.72}, {"code": "133", "label": "Not as Described", "type": "Contestazione", "n": 5, "a": 390.74}, {"code": "131", "label": "Not Received", "type": "Contestazione", "n": 4, "a": 358.05}, {"code": "C08", "label": "Goods Not Received", "type": "Contestazione", "n": 2, "a": 243.9}, {"code": "132", "label": "Cancelled Recurring", "type": "Contestazione", "n": 2, "a": 220.18}, {"code": "4834", "label": "Duplicate", "type": "Contestazione", "n": 2, "a": 192.91}, {"code": "4752", "label": "Declined Auth", "type": "Contestazione", "n": 1, "a": 188.69}, {"code": "1262", "label": "Paid Other Means", "type": "Contestazione", "n": 2, "a": 174.79}, {"code": "4868", "label": "Fraud CNP", "type": "Contestazione", "n": 2, "a": 165.27}, {"code": "4855", "label": "Non-Receipt", "type": "Contestazione", "n": 1, "a": 154.76}, {"code": "1261", "label": "Duplicate", "type": "Contestazione", "n": 1, "a": 146.79}, {"code": "135", "label": "Misrepresentation", "type": "Contestazione", "n": 1, "a": 110.09}, {"code": "4860", "label": "Credit Not Processed", "type": "Contestazione", "n": 2, "a": 103.8}, {"code": "4555", "label": "Credit Not Received", "type": "Contestazione", "n": 1, "a": 51.9}, {"code": "125", "label": "Incorrect Amount", "type": "Contestazione", "n": 1, "a": 41.9}],
+  byProduct:[{"k": "CalmiCollar (abbonamento)", "cont": 2957.59, "cb": 2}, {"k": "CalmiCollar", "cont": 961.3, "cb": 2}, {"k": "Leash Walk Formula", "cont": 752.0, "cb": 9}, {"k": "WonderWalk", "cont": 290.0, "cb": 0}, {"k": "Up 4%", "cont": 270.24, "cb": 0}, {"k": "EnerCanis (abbonamento)", "cont": 141.0, "cb": 0}, {"k": "The Four-Leaf Dog Training", "cont": 97.0, "cb": 0}, {"k": "Shipping Protection", "cont": 25.89, "cb": 2}],
+  records:[]
 };
 function applyCB(j){
   if(!j) return;
   if(j.updated)CB.updated=j.updated;
   if(j.scope)CB.scope=j.scope;
   if(j.total)CB.total=j.total;
+  if(j.dated)CB.dated=j.dated;
   if(Array.isArray(j.byType))CB.byType=j.byType;
   if(Array.isArray(j.byReason))CB.byReason=j.byReason;
   if(Array.isArray(j.byProduct))CB.byProduct=j.byProduct;
+  if(Array.isArray(j.records))CB.records=j.records;
 }
 const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 function renderCB(){
@@ -396,7 +385,34 @@ function renderCB(){
       `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:${col}"></div></div>`+
       `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`;
   }).join('');
-  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Due sistemi distinti. <b>Totale, per tipo e per motivazione</b> vengono dal foglio dispute/alert «DISPUTE KURV2026» (${CB.total.n} record · ${money(CB.total.a)}), l'unico con i reason code. La <b>ripartizione per prodotto</b> viene dal «refund tracker» (fogli Rimborsi Avvenuti USA + usa/conti ita): importo contestato per prodotto ${money(prodC)}. I due sistemi contano le contestazioni in modo leggermente diverso, quindi i due totali non coincidono al centesimo. Aggiornamento automatico settimanale.`;
+  const dt=CB.dated||CB.total;
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Due sistemi distinti. <b>Totale, per tipo e per motivazione</b> vengono dal foglio dispute/alert «DISPUTE KURV2026» (${CB.total.n} record · ${money(CB.total.a)}), l'unico con i reason code. La <b>ripartizione per prodotto</b> viene dal «refund tracker» (fogli Rimborsi Avvenuti USA + usa/conti ita): importo contestato per prodotto ${money(prodC)}. I due sistemi contano le contestazioni in modo leggermente diverso, quindi i due totali non coincidono al centesimo. Il <b>filtro per periodo</b> qui sotto usa i ${dt.n} record con data (${money(dt.a)}); ${CB.total.n-dt.n} record sono privi di data e restano solo nel complessivo. Aggiornamento automatico settimanale.`;
+  renderCBTime();
+}
+let CBGRAN='month';
+function cbAgg(gran){
+  const map={};
+  (CB.records||[]).forEach(r=>{
+    if(!r.date) return;
+    const p=r.date.split('-').map(Number);
+    let key,lab;
+    if(gran==='month'){key=r.date.slice(0,7);lab=(MONTHS[r.date.slice(5,7)]||'')+' '+r.date.slice(0,4);}
+    else if(gran==='day'){key=r.date;lab=r.date.slice(8,10)+'/'+r.date.slice(5,7)+'/'+r.date.slice(0,4);}
+    else{const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);const iso=d.toISOString().slice(0,10);key=iso;lab='sett. dal '+iso.slice(8,10)+'/'+iso.slice(5,7);}
+    (map[key]=map[key]||{lab,n:0,a:0});map[key].n++;map[key].a+=r.amount;
+  });
+  return Object.entries(map).sort((a,b)=>a[0]<b[0]?-1:1).map(([k,v])=>v);
+}
+function renderCBTime(){
+  const rows=cbAgg(CBGRAN);
+  const max=Math.max(...rows.map(r=>r.a),1);
+  const tn=rows.reduce((s,r)=>s+r.n,0),ta=rows.reduce((s,r)=>s+r.a,0);
+  document.getElementById('cbTimeInfo').textContent=`${tn} chargeback con data · ${money(ta)}`;
+  document.getElementById('cbTime').innerHTML = rows.length? rows.map(r=>
+    `<div class="rbar-row"><div class="lab">${r.lab}</div>`+
+    `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:var(--m)"></div></div>`+
+    `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`).join('')
+    : '<p class="chart-sub">Nessun dato con data disponibile.</p>';
 }
 
 const tb=document.getElementById('themeBtn');
@@ -404,6 +420,7 @@ tb.addEventListener('click',()=>{const light=document.documentElement.getAttribu
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
 const histToggle=document.getElementById('histToggle');
 histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
+document.getElementById('cbGran').addEventListener('click',e=>{const btn=e.target.closest('button[data-g]');if(!btn)return;CBGRAN=btn.dataset.g;document.querySelectorAll('#cbGran button').forEach(b=>b.classList.toggle('on',b===btn));renderCBTime();});
 
 /* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
 const WORKER="https://nuumipetdashcustomercare.ciandrinicole.workers.dev/";
