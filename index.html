@@ -204,7 +204,8 @@
     </div>
     <div class="card">
       <h3>Per prodotto</h3>
-      <div id="cbProd" style="margin-top:6px"></div>
+      <p class="chart-sub" style="margin:4px 0 0">importo contestato ($) · CB = n. chargeback tracciati</p>
+      <div id="cbProd" style="margin-top:8px"></div>
       <p class="cb-total" style="color:var(--muted);font-size:12px;margin:10px 0 0" id="cbProdNote"></p>
     </div>
   </div>
@@ -348,11 +349,17 @@ const CB={
     {code:"4555",label:"Credit Not Received",      type:"Contestazione", n:1,  a:51.90},
     {code:"125", label:"Incorrect Amount",         type:"Contestazione", n:1,  a:41.90}
   ],
+  // Per prodotto: importo contestato ($) dalla tabella riepilogo "refund tracker";
+  // cb = n. chargeback con prodotto tracciato (dai tab Rimborsi Avvenuti USA + usa/conti ita)
   byProduct:[
-    {k:"Leash Walk Formula",        n:9, a:423.00},
-    {k:"CalmiCollar",              n:2, a:369.89},
-    {k:"CalmiCollar (abbonamento)",n:2, a:230.00},
-    {k:"Shipping Protection",      n:2, a:15.94}
+    {k:"CalmiCollar (abbonamento)",  cont:2957.59, cb:2},
+    {k:"CalmiCollar",                cont:961.30,  cb:2},
+    {k:"Leash Walk Formula",         cont:752.00,  cb:9},
+    {k:"WonderWalk",                 cont:290.00,  cb:0},
+    {k:"Up 4%",                      cont:270.24,  cb:0},
+    {k:"EnerCanis (abbonamento)",    cont:141.00,  cb:0},
+    {k:"The Four-Leaf Dog Training", cont:97.00,   cb:0},
+    {k:"Shipping Protection",        cont:25.89,   cb:2}
   ]
 };
 const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -366,9 +373,9 @@ function renderCB(){
     return `<div class="cb-line"><span class="lb"><span class="dot" style="background:${col}"></span>${t.k}</span><span class="vv"><span class="cnt">${t.n}</span>${money(t.a)}</span></div>`;
   }).join('');
   document.getElementById('cbProd').innerHTML=CB.byProduct.map(p=>
-    `<div class="cb-line"><span class="lb">${p.k}</span><span class="vv"><span class="cnt">${p.n}</span>${money(p.a)}</span></div>`).join('');
-  const prodN=CB.byProduct.reduce((s,x)=>s+x.n,0),prodA=CB.byProduct.reduce((s,x)=>s+x.a,0);
-  document.getElementById('cbProdNote').textContent=`Sottoinsieme con prodotto identificato: ${prodN} chargeback · ${money(prodA)}.`;
+    `<div class="cb-line"><span class="lb">${p.k}</span><span class="vv">${p.cb?`<span class="cnt">${p.cb} CB</span>`:''}${money(p.cont)}</span></div>`).join('');
+  const prodC=CB.byProduct.reduce((s,x)=>s+x.cont,0),prodCB=CB.byProduct.reduce((s,x)=>s+(x.cb||0),0);
+  document.getElementById('cbProdNote').textContent=`Totale contestato per prodotto: ${money(prodC)} · di cui ${prodCB} chargeback con prodotto tracciato.`;
   const max=Math.max(...CB.byReason.map(r=>r.a),1);
   const sorted=[...CB.byReason].sort((x,y)=>y.a-x.a);
   document.getElementById('cbReason').innerHTML=sorted.map(r=>{
@@ -377,7 +384,7 @@ function renderCB(){
       `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:${col}"></div></div>`+
       `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`;
   }).join('');
-  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Dati da due fogli Google (Nuumipet + The Pawesome). Totale e ripartizioni per tipo e motivazione derivano dalla tabella dispute (${CB.total.n} chargeback · ${money(CB.total.a)}). La ripartizione «per prodotto» proviene da un foglio separato e copre solo i chargeback con prodotto associato, quindi non somma al totale complessivo. Aggiornamento automatico settimanale.`;
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Due sistemi distinti. <b>Totale, per tipo e per motivazione</b> vengono dal foglio dispute/alert «DISPUTE KURV2026» (${CB.total.n} record · ${money(CB.total.a)}), l'unico con i reason code. La <b>ripartizione per prodotto</b> viene dal «refund tracker» (fogli Rimborsi Avvenuti USA + usa/conti ita): importo contestato per prodotto ${money(prodC)}. I due sistemi contano le contestazioni in modo leggermente diverso, quindi i due totali non coincidono al centesimo. Aggiornamento automatico settimanale.`;
 }
 
 const tb=document.getElementById('themeBtn');
