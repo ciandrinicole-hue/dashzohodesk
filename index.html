@@ -90,6 +90,27 @@
   .hbar-track{flex:1;background:var(--surface-2);border-radius:6px;height:16px;overflow:hidden}
   .hbar-fill{height:100%;border-radius:6px}
   .hbar-val{width:56px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:13px}
+  .cb-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;margin:30px 0 14px;padding-top:22px;border-top:1px solid var(--border)}
+  .cb-head h2{font-size:clamp(17px,2vw,22px);margin:0;letter-spacing:-.2px}
+  .cb-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .cb-grid{grid-template-columns:1fr 1fr 1fr;margin-bottom:14px}
+  @media(max-width:860px){.cb-grid{grid-template-columns:1fr}}
+  .cb-total .big{font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-1px;margin:8px 0 0;line-height:1.05}
+  .cb-total .big.amt{color:var(--warn)}
+  .cb-total .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+  .cb-line{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .cb-line:last-child{border-bottom:none}
+  .cb-line .lb{display:flex;align-items:center;gap:8px}
+  .cb-line .vv{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .cb-line .vv .cnt{color:var(--muted);font-weight:500;font-size:12px;margin-right:8px}
+  .rbar-row{display:grid;grid-template-columns:220px 1fr 104px;align-items:center;gap:12px;margin:9px 0}
+  .rbar-row .lab{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rbar-row .lab .code{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:7px}
+  .rbar-track{background:var(--surface-2);border-radius:6px;height:15px;overflow:hidden}
+  .rbar-fill{height:100%;border-radius:6px}
+  .rbar-val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;white-space:nowrap}
+  .rbar-val .cnt{color:var(--muted);font-weight:500;font-size:11px;margin-right:6px}
+  @media(max-width:560px){.rbar-row{grid-template-columns:120px 1fr 82px}}
 </style>
 </head>
 <body>
@@ -149,6 +170,39 @@
     </table>
     <p class="note" id="note"></p>
   </div>
+
+  <div class="cb-head">
+    <div>
+      <h2>Chargeback &amp; contestazioni</h2>
+      <p>Nuumipet + The Pawesome · numero e importo ($) · <span id="cbUpd">—</span></p>
+    </div>
+  </div>
+
+  <div class="grid cb-grid">
+    <div class="card cb-total">
+      <h3>Totale chargeback</h3>
+      <div class="big" id="cbTotN">—</div>
+      <div class="lbl">numero totale</div>
+      <div class="big amt" id="cbTotA">—</div>
+      <div class="lbl">importo complessivo · <span id="cbScope"></span></div>
+    </div>
+    <div class="card">
+      <h3>Per tipo</h3>
+      <div id="cbType" style="margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h3>Per prodotto</h3>
+      <div id="cbProd" style="margin-top:6px"></div>
+      <p class="cb-total" style="color:var(--muted);font-size:12px;margin:10px 0 0" id="cbProdNote"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:4px">Per motivazione (reason code)</h3>
+    <p class="chart-sub">ordinato per importo · barra = $ · <span style="color:var(--warn)">■</span> Frode · <span style="color:var(--m)">■</span> Contestazione</p>
+    <div id="cbReason" style="margin-top:14px"></div>
+  </div>
+  <p class="note" id="cbNote"></p>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -253,6 +307,66 @@ function totBars(){
     <div class="hbar-track"><div class="hbar-fill" style="width:${(o.v/max*100).toFixed(1)}%;background:${o.c}"></div></div>
     <div class="hbar-val">${o.v.toLocaleString('it-IT')}</div></div>`).join('');
 }
+/* ===== Chargeback & contestazioni ===== */
+const CB={
+  updated:"29/07/2026",
+  scope:"Nuumipet + The Pawesome",
+  total:{n:53,a:5061.61},
+  byType:[
+    {k:"Contestazione",n:37,a:3493.07},
+    {k:"Frode",n:16,a:1568.54}
+  ],
+  byReason:[
+    {code:"104", label:"Fraud Card-Absent",        type:"Frode",         n:16, a:1568.54},
+    {code:"4853",label:"Defective/Not as Described",type:"Contestazione", n:7,  a:708.12},
+    {code:"133", label:"Not as Described",         type:"Contestazione", n:5,  a:390.74},
+    {code:"131", label:"Not Received",             type:"Contestazione", n:4,  a:358.05},
+    {code:"4837",label:"No Authorization",         type:"Contestazione", n:3,  a:295.03},
+    {code:"137", label:"Cancelled",                type:"Contestazione", n:3,  a:264.90},
+    {code:"132", label:"Cancelled Recurring",      type:"Contestazione", n:2,  a:220.18},
+    {code:"4752",label:"Declined Auth",            type:"Contestazione", n:1,  a:188.69},
+    {code:"1262",label:"Paid Other Means",         type:"Contestazione", n:2,  a:174.79},
+    {code:"4868",label:"Fraud CNP",                type:"Contestazione", n:2,  a:165.27},
+    {code:"4855",label:"Non-Receipt",              type:"Contestazione", n:1,  a:154.76},
+    {code:"1261",label:"Duplicate",                type:"Contestazione", n:1,  a:146.79},
+    {code:"4834",label:"Duplicate",                type:"Contestazione", n:1,  a:118.06},
+    {code:"135", label:"Misrepresentation",        type:"Contestazione", n:1,  a:110.09},
+    {code:"4860",label:"Credit Not Processed",     type:"Contestazione", n:2,  a:103.80},
+    {code:"4555",label:"Credit Not Received",      type:"Contestazione", n:1,  a:51.90},
+    {code:"125", label:"Incorrect Amount",         type:"Contestazione", n:1,  a:41.90}
+  ],
+  byProduct:[
+    {k:"Leash Walk Formula",        n:9, a:423.00},
+    {k:"CalmiCollar",              n:2, a:369.89},
+    {k:"CalmiCollar (abbonamento)",n:2, a:230.00},
+    {k:"Shipping Protection",      n:2, a:15.94}
+  ]
+};
+const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function renderCB(){
+  document.getElementById('cbUpd').textContent='agg. '+CB.updated;
+  document.getElementById('cbScope').textContent=CB.scope;
+  document.getElementById('cbTotN').textContent=CB.total.n;
+  document.getElementById('cbTotA').textContent=money(CB.total.a);
+  document.getElementById('cbType').innerHTML=CB.byType.map(t=>{
+    const col=t.k==='Frode'?'var(--warn)':'var(--m)';
+    return `<div class="cb-line"><span class="lb"><span class="dot" style="background:${col}"></span>${t.k}</span><span class="vv"><span class="cnt">${t.n}</span>${money(t.a)}</span></div>`;
+  }).join('');
+  document.getElementById('cbProd').innerHTML=CB.byProduct.map(p=>
+    `<div class="cb-line"><span class="lb">${p.k}</span><span class="vv"><span class="cnt">${p.n}</span>${money(p.a)}</span></div>`).join('');
+  const prodN=CB.byProduct.reduce((s,x)=>s+x.n,0),prodA=CB.byProduct.reduce((s,x)=>s+x.a,0);
+  document.getElementById('cbProdNote').textContent=`Sottoinsieme con prodotto identificato: ${prodN} chargeback · ${money(prodA)}.`;
+  const max=Math.max(...CB.byReason.map(r=>r.a),1);
+  const sorted=[...CB.byReason].sort((x,y)=>y.a-x.a);
+  document.getElementById('cbReason').innerHTML=sorted.map(r=>{
+    const col=r.type==='Frode'?'var(--warn)':'var(--m)';
+    return `<div class="rbar-row"><div class="lab" title="${r.code} · ${r.label}"><span class="code">${r.code}</span>${r.label}</div>`+
+      `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:${col}"></div></div>`+
+      `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`;
+  }).join('');
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Dati da due fogli Google (Nuumipet + The Pawesome). Totale e ripartizioni per tipo e motivazione derivano dalla tabella dispute (${CB.total.n} chargeback · ${money(CB.total.a)}). La ripartizione «per prodotto» proviene da un foglio separato e copre solo i chargeback con prodotto associato, quindi non somma al totale complessivo. Aggiornamento automatico settimanale.`;
+}
+
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
@@ -279,6 +393,7 @@ function loadData(){
     .finally(()=>{renderAll();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
+renderCB();
 loadData();
 </script>
 </body>
