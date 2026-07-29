@@ -193,49 +193,42 @@
 
   <div class="cb-head">
     <div>
-      <h2>Chargeback &amp; contestazioni</h2>
-      <p>Nuumipet + The Pawesome · numero e importo ($) · <span id="cbUpd">—</span></p>
+      <h2>Contestazioni USA</h2>
+      <p>vinte / perse / aperte · per provider · % su fatturato · <span id="cbUpd">—</span></p>
     </div>
   </div>
 
   <div class="grid cb-grid">
     <div class="card cb-total">
-      <h3>Totale chargeback</h3>
-      <div class="big" id="cbTotN">—</div>
-      <div class="lbl">numero totale</div>
-      <div class="big amt" id="cbTotA">—</div>
-      <div class="lbl">importo complessivo · <span id="cbScope"></span></div>
+      <h3>Contestazioni totali</h3>
+      <div class="big" id="ctTot">—</div>
+      <div class="lbl">aperte nel 2026 · <span id="ctScope">Nuumipet + The Pawesome</span></div>
     </div>
     <div class="card">
-      <h3>Per tipo</h3>
-      <div id="cbType" style="margin-top:6px"></div>
+      <h3>Esito</h3>
+      <p class="chart-sub" style="margin:4px 0 0">vinte = vinta+annullata · perse = persa+rimborsata</p>
+      <div id="ctEsito" style="margin-top:12px"></div>
     </div>
     <div class="card">
-      <h3>Per prodotto</h3>
-      <p class="chart-sub" style="margin:4px 0 0">importo contestato ($) · CB = n. chargeback tracciati</p>
-      <div id="cbProd" style="margin-top:8px"></div>
-      <p class="cb-total" style="color:var(--muted);font-size:12px;margin:10px 0 0" id="cbProdNote"></p>
+      <h3>% su fatturato — mese corrente</h3>
+      <div class="big amt" id="ctPctNow">—</div>
+      <div class="lbl" id="ctPctNowSub"></div>
     </div>
   </div>
 
   <div class="card">
-    <h3 style="margin-bottom:4px">Per motivazione (reason code)</h3>
-    <p class="chart-sub">ordinato per importo · barra = $ · <span style="color:var(--warn)">■</span> Frode · <span style="color:var(--m)">■</span> Contestazione</p>
-    <div id="cbReason" style="margin-top:14px"></div>
+    <h3 style="margin-bottom:4px">Per provider</h3>
+    <p class="chart-sub"><span style="color:var(--good)">■</span> vinte · <span style="color:var(--n)">■</span> perse · <span style="color:var(--muted)">■</span> aperte</p>
+    <div id="ctProv" style="margin-top:12px"></div>
   </div>
 
   <div class="cb-sub-head">
     <div>
-      <h3 class="cb-sub-title">Andamento nel tempo</h3>
-      <p class="chart-sub" style="margin:3px 0 0">chargeback per periodo · <span id="cbTimeInfo"></span></p>
-    </div>
-    <div class="seg" id="cbGran">
-      <button type="button" data-g="month" class="on">Mese</button>
-      <button type="button" data-g="week">Settimana</button>
-      <button type="button" data-g="day">Giorno</button>
+      <h3 class="cb-sub-title">% contestazioni su fatturato — mensile</h3>
+      <p class="chart-sub" style="margin:3px 0 0">fatturato incassato (CheckoutChamp, live da Mattia) · <span id="ctFatInfo"></span></p>
     </div>
   </div>
-  <div class="card"><div id="cbTime" style="max-height:440px;overflow:auto"></div></div>
+  <div class="card"><div id="ctMonthly"></div></div>
 
   <p class="note" id="cbNote"></p>
 </div>
@@ -343,76 +336,64 @@ function totBars(){
     <div class="hbar-track"><div class="hbar-fill" style="width:${(o.v/max*100).toFixed(1)}%;background:${o.c}"></div></div>
     <div class="hbar-val">${o.v.toLocaleString('it-IT')}</div></div>`).join('');
 }
-/* ===== Chargeback & contestazioni ===== */
-const CB={
-  updated:"29/07/2026", scope:"Nuumipet + The Pawesome",
-  total:{"n": 64, "a": 6311.02}, dated:{"n": 55, "a": 5305.51},
-  byType:[{"k": "Contestazione", "n": 43, "a": 4338.9}, {"k": "Frode", "n": 21, "a": 1972.12}],
-  byReason:[{"code": "104", "label": "Fraud Card-Absent", "type": "Frode", "n": 21, "a": 1972.12}, {"code": "4853", "label": "Defective/Not as Described", "type": "Contestazione", "n": 7, "a": 708.12}, {"code": "137", "label": "Cancelled", "type": "Contestazione", "n": 5, "a": 603.29}, {"code": "4837", "label": "No Authorization", "type": "Contestazione", "n": 4, "a": 483.72}, {"code": "133", "label": "Not as Described", "type": "Contestazione", "n": 5, "a": 390.74}, {"code": "131", "label": "Not Received", "type": "Contestazione", "n": 4, "a": 358.05}, {"code": "C08", "label": "Goods Not Received", "type": "Contestazione", "n": 2, "a": 243.9}, {"code": "132", "label": "Cancelled Recurring", "type": "Contestazione", "n": 2, "a": 220.18}, {"code": "4834", "label": "Duplicate", "type": "Contestazione", "n": 2, "a": 192.91}, {"code": "4752", "label": "Declined Auth", "type": "Contestazione", "n": 1, "a": 188.69}, {"code": "1262", "label": "Paid Other Means", "type": "Contestazione", "n": 2, "a": 174.79}, {"code": "4868", "label": "Fraud CNP", "type": "Contestazione", "n": 2, "a": 165.27}, {"code": "4855", "label": "Non-Receipt", "type": "Contestazione", "n": 1, "a": 154.76}, {"code": "1261", "label": "Duplicate", "type": "Contestazione", "n": 1, "a": 146.79}, {"code": "135", "label": "Misrepresentation", "type": "Contestazione", "n": 1, "a": 110.09}, {"code": "4860", "label": "Credit Not Processed", "type": "Contestazione", "n": 2, "a": 103.8}, {"code": "4555", "label": "Credit Not Received", "type": "Contestazione", "n": 1, "a": 51.9}, {"code": "125", "label": "Incorrect Amount", "type": "Contestazione", "n": 1, "a": 41.9}],
-  byProduct:[{"k": "CalmiCollar (abbonamento)", "cont": 2957.59, "cb": 2}, {"k": "CalmiCollar", "cont": 961.3, "cb": 2}, {"k": "Leash Walk Formula", "cont": 752.0, "cb": 9}, {"k": "WonderWalk", "cont": 290.0, "cb": 0}, {"k": "Up 4%", "cont": 270.24, "cb": 0}, {"k": "EnerCanis (abbonamento)", "cont": 141.0, "cb": 0}, {"k": "The Four-Leaf Dog Training", "cont": 97.0, "cb": 0}, {"k": "Shipping Protection", "cont": 25.89, "cb": 2}],
-  records:[]
+/* ===== Contestazioni USA ===== */
+const CT={
+  updated:"29/07/2026",
+  total:278, vinte:110, perse:86, aperte:67, pv:56.1, pp:43.9,
+  provider:[
+    {k:"NMI · kurv", tot:96, v:35, p:21, a:33},
+    {k:"Stripe ThePawesome · stripe nuumipet", tot:34, v:3, p:19, a:12},
+    {k:"conti ita · PayPal FC + Stripe FC", tot:148, v:72, p:46, a:22, agg:true}
+  ],
+  monthlyContest:{"2026-01":727,"2026-02":1054,"2026-03":493,"2026-04":4721,"2026-05":5688,"2026-06":5913,"2026-07":7167}
 };
-function applyCB(j){
-  if(!j) return;
-  if(j.updated)CB.updated=j.updated;
-  if(j.scope)CB.scope=j.scope;
-  if(j.total)CB.total=j.total;
-  if(j.dated)CB.dated=j.dated;
-  if(Array.isArray(j.byType))CB.byType=j.byType;
-  if(Array.isArray(j.byReason))CB.byReason=j.byReason;
-  if(Array.isArray(j.byProduct))CB.byProduct=j.byProduct;
-  if(Array.isArray(j.records))CB.records=j.records;
+const MATTIA="https://mattiapaganelli.github.io/meta-slack-reporter/numipet/data.json";
+let FATM=null, FATLAST=null;
+const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+const MONM={'01':'Gen','02':'Feb','03':'Mar','04':'Apr','05':'Mag','06':'Giu','07':'Lug','08':'Ago','09':'Set','10':'Ott','11':'Nov','12':'Dic'};
+function loadFatturato(){
+  return fetch(MATTIA+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||!j.mixed||!Array.isArray(j.mixed.collected_revenue_daily))return;
+    const f={}; j.mixed.collected_revenue_daily.forEach(d=>{const m=d.date.slice(0,7);f[m]=(f[m]||0)+(d.gross||0);});
+    FATM=f; FATLAST=j.mixed.collected_revenue_daily.slice(-1)[0].date;
+  }).catch(()=>{});
 }
-const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-function renderCB(){
-  document.getElementById('cbUpd').textContent='agg. '+CB.updated;
-  document.getElementById('cbScope').textContent=CB.scope;
-  document.getElementById('cbTotN').textContent=CB.total.n;
-  document.getElementById('cbTotA').textContent=money(CB.total.a);
-  document.getElementById('cbType').innerHTML=CB.byType.map(t=>{
-    const col=t.k==='Frode'?'var(--warn)':'var(--m)';
-    return `<div class="cb-line"><span class="lb"><span class="dot" style="background:${col}"></span>${t.k}</span><span class="vv"><span class="cnt">${t.n}</span>${money(t.a)}</span></div>`;
+function pctStr(x){return (Math.round(x*10)/10).toString().replace('.',',')+'%';}
+function renderContest(){
+  document.getElementById('cbUpd').textContent='agg. '+CT.updated;
+  document.getElementById('ctTot').textContent=CT.total;
+  const maxE=Math.max(CT.vinte,CT.perse,CT.aperte,1);
+  const bar=(lab,val,pct,col)=>`<div class="hbar-row"><div class="lab">${lab}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(val/maxE*100).toFixed(1)}%;background:${col}"></div></div><div class="hbar-val">${val}${pct!=null?' \u00b7 '+pct+'%':''}</div></div>`;
+  document.getElementById('ctEsito').innerHTML=bar('Vinte',CT.vinte,CT.pv,'var(--good)')+bar('Perse',CT.perse,CT.pp,'var(--n)')+bar('Aperte',CT.aperte,null,'var(--muted)');
+  document.getElementById('ctProv').innerHTML=CT.provider.map(p=>{
+    const chiuse=p.v+p.p; const pv=chiuse?Math.round(p.v/chiuse*1000)/10:0; const pp=chiuse?Math.round(p.p/chiuse*1000)/10:0;
+    const seg=(v,col)=>`<span style="display:inline-block;height:9px;width:${(v/p.tot*100).toFixed(1)}%;background:${col}"></span>`;
+    return `<div style="margin:14px 0 4px">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>${p.k}${p.agg?' <span class="cnt" style="color:var(--muted);font-size:11px">aggregato</span>':''}</span><span class="cnt" style="color:var(--muted)">${p.tot} tot</span></div>
+      <div style="display:flex;border-radius:5px;overflow:hidden;height:9px;background:var(--surface-2)">${seg(p.v,'var(--good)')}${seg(p.p,'var(--n)')}${seg(p.a,'var(--axis)')}</div>
+      <div style="display:flex;gap:18px;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums"><span style="color:var(--good)">${p.v} vinte (${pctStr(pv)})</span><span style="color:var(--n)">${p.p} perse (${pctStr(pp)})</span><span style="color:var(--muted)">${p.a} aperte</span></div>
+    </div>`;
   }).join('');
-  document.getElementById('cbProd').innerHTML=CB.byProduct.map(p=>
-    `<div class="cb-line"><span class="lb">${p.k}</span><span class="vv">${p.cb?`<span class="cnt">${p.cb} CB</span>`:''}${money(p.cont)}</span></div>`).join('');
-  const prodC=CB.byProduct.reduce((s,x)=>s+x.cont,0),prodCB=CB.byProduct.reduce((s,x)=>s+(x.cb||0),0);
-  document.getElementById('cbProdNote').textContent=`Totale contestato per prodotto: ${money(prodC)} · di cui ${prodCB} chargeback con prodotto tracciato.`;
-  const max=Math.max(...CB.byReason.map(r=>r.a),1);
-  const sorted=[...CB.byReason].sort((x,y)=>y.a-x.a);
-  document.getElementById('cbReason').innerHTML=sorted.map(r=>{
-    const col=r.type==='Frode'?'var(--warn)':'var(--m)';
-    return `<div class="rbar-row"><div class="lab" title="${r.code} · ${r.label}"><span class="code">${r.code}</span>${r.label}</div>`+
-      `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:${col}"></div></div>`+
-      `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`;
+  renderMonthlyPct();
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. La copertura fatturato parte da met\u00e0 gennaio e arriva al ${FATLAST||'\u2014'}: <b>Gennaio e l'ultimo mese sono parziali</b>, quindi l\u00ec la % \u00e8 sovrastimata.`;
+}
+function renderMonthlyPct(){
+  const cont=CT.monthlyContest, fat=FATM||{};
+  const months=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]);
+  const rows=months.map(m=>({m,c:cont[m]||0,f:fat[m]||0,pct:(fat[m])?((cont[m]||0)/fat[m]*100):null}));
+  const maxP=Math.max(...rows.map(r=>r.pct||0),0.1);
+  document.getElementById('ctMonthly').innerHTML=rows.map(r=>{
+    const lab=(MONM[r.m.slice(5,7)]||r.m)+' '+r.m.slice(0,4);
+    const pv=r.pct==null?'n/d':pctStr(r.pct);
+    return `<div class="rbar-row"><div class="lab">${lab}</div><div class="rbar-track"><div class="rbar-fill" style="width:${r.pct?(r.pct/maxP*100).toFixed(1):0}%;background:var(--warn)"></div></div><div class="rbar-val">${pv} <span class="cnt">${money(r.c)}/${money(r.f)}</span></div></div>`;
   }).join('');
-  const dt=CB.dated||CB.total;
-  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Due sistemi distinti. <b>Totale, per tipo e per motivazione</b> vengono dal foglio dispute/alert «DISPUTE KURV2026» (${CB.total.n} record · ${money(CB.total.a)}), l'unico con i reason code. La <b>ripartizione per prodotto</b> viene dal «refund tracker» (fogli Rimborsi Avvenuti USA + usa/conti ita): importo contestato per prodotto ${money(prodC)}. I due sistemi contano le contestazioni in modo leggermente diverso, quindi i due totali non coincidono al centesimo. Il <b>filtro per periodo</b> qui sotto usa i ${dt.n} record con data (${money(dt.a)}); ${CB.total.n-dt.n} record sono privi di data e restano solo nel complessivo. Aggiornamento automatico settimanale.`;
-  renderCBTime();
-}
-let CBGRAN='month';
-function cbAgg(gran){
-  const map={};
-  (CB.records||[]).forEach(r=>{
-    if(!r.date) return;
-    const p=r.date.split('-').map(Number);
-    let key,lab;
-    if(gran==='month'){key=r.date.slice(0,7);lab=(MONTHS[r.date.slice(5,7)]||'')+' '+r.date.slice(0,4);}
-    else if(gran==='day'){key=r.date;lab=r.date.slice(8,10)+'/'+r.date.slice(5,7)+'/'+r.date.slice(0,4);}
-    else{const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);const iso=d.toISOString().slice(0,10);key=iso;lab='sett. dal '+iso.slice(8,10)+'/'+iso.slice(5,7);}
-    (map[key]=map[key]||{lab,n:0,a:0});map[key].n++;map[key].a+=r.amount;
-  });
-  return Object.entries(map).sort((a,b)=>a[0]<b[0]?-1:1).map(([k,v])=>v);
-}
-function renderCBTime(){
-  const rows=cbAgg(CBGRAN);
-  const max=Math.max(...rows.map(r=>r.a),1);
-  const tn=rows.reduce((s,r)=>s+r.n,0),ta=rows.reduce((s,r)=>s+r.a,0);
-  document.getElementById('cbTimeInfo').textContent=`${tn} chargeback con data · ${money(ta)}`;
-  document.getElementById('cbTime').innerHTML = rows.length? rows.map(r=>
-    `<div class="rbar-row"><div class="lab">${r.lab}</div>`+
-    `<div class="rbar-track"><div class="rbar-fill" style="width:${(r.a/max*100).toFixed(1)}%;background:var(--m)"></div></div>`+
-    `<div class="rbar-val"><span class="cnt">${r.n}</span>${money(r.a)}</div></div>`).join('')
-    : '<p class="chart-sub">Nessun dato con data disponibile.</p>';
+  const now=months[months.length-1];
+  if(now && fat[now]){
+    const p=(cont[now]||0)/fat[now]*100;
+    document.getElementById('ctPctNow').textContent=pctStr(p);
+    document.getElementById('ctPctNowSub').textContent=(MONM[now.slice(5,7)]||'')+' '+now.slice(0,4)+' · '+money(cont[now]||0)+' / '+money(fat[now])+(FATLAST&&now===FATLAST.slice(0,7)?' (in corso)':'');
+  } else { document.getElementById('ctPctNow').textContent='\u2014'; document.getElementById('ctPctNowSub').textContent='fatturato non disponibile'; }
+  document.getElementById('ctFatInfo').textContent=FATLAST?('dati al '+FATLAST.slice(8,10)+'/'+FATLAST.slice(5,7)):'in caricamento\u2026';
 }
 
 const tb=document.getElementById('themeBtn');
@@ -420,7 +401,6 @@ tb.addEventListener('click',()=>{const light=document.documentElement.getAttribu
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
 const histToggle=document.getElementById('histToggle');
 histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
-document.getElementById('cbGran').addEventListener('click',e=>{const btn=e.target.closest('button[data-g]');if(!btn)return;CBGRAN=btn.dataset.g;document.querySelectorAll('#cbGran button').forEach(b=>b.classList.toggle('on',b===btn));renderCBTime();});
 
 /* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
 const WORKER="https://nuumipetdashcustomercare.ciandrinicole.workers.dev/";
@@ -441,11 +421,11 @@ function loadData(){
     .then(j=>{if(j&&Array.isArray(j.days)&&j.days.length){DATA=j.days;UPDATED=j.updated||UPDATED;if(j.open)OPEN=j.open;}})
     .catch(()=>{})
     .then(()=>fetch(WORKER+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(applyLive).catch(()=>{}))
-    .then(()=>fetch('chargebacks.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(applyCB).catch(()=>{}))
-    .finally(()=>{renderAll();renderCB();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
+    .then(()=>loadFatturato())
+    .finally(()=>{renderAll();renderContest();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
-renderCB();
+renderContest();
 loadData();
 </script>
 </body>
