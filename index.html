@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nuumipet Support · Ticket</title>
+<title>NuumiPet Customer Care Dashboard</title>
 <style>
   :root{
     --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#212120;
@@ -111,13 +111,20 @@
   .rbar-val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;white-space:nowrap}
   .rbar-val .cnt{color:var(--muted);font-weight:500;font-size:11px;margin-right:6px}
   @media(max-width:560px){.rbar-row{grid-template-columns:120px 1fr 82px}}
+  .collapse-hd{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0;text-align:left}
+  .collapse-hd:hover{color:var(--ink-2)}
+  .collapse-hd .chev{transition:transform .18s;font-size:12px;display:inline-block}
+  .collapse-hd[aria-expanded="true"] .chev{transform:rotate(90deg)}
+  .collapse-hd .cnt-tag{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px;margin-left:8px}
+  .collapse-body{margin-top:12px}
+  .collapse-body[hidden]{display:none}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <div class="title">
-      <h1>Nuumipet Support · Ticket</h1>
+      <h1>NuumiPet Customer Care Dashboard</h1>
       <p>Zoho Desk — dipartimento Nuumipet Support · chiusi per giornata &amp; backlog aperto</p>
     </div>
     <div class="top-right">
@@ -155,20 +162,25 @@
   </section>
 
   <div class="card table-card">
-    <h3 style="margin-bottom:10px">Storico giornaliero — ticket chiusi</h3>
-    <table id="histTable">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th class="cm gsep">Mavreen</th>
-          <th class="cn gsep">Nicole</th>
-          <th class="cu gsep">Non assegnati</th>
-          <th class="tot gsep">Totale</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <p class="note" id="note"></p>
+    <button class="collapse-hd" id="histToggle" aria-expanded="false" aria-controls="histBody">
+      <span>Storico giornaliero — ticket chiusi<span class="cnt-tag" id="histCount"></span></span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="collapse-body" id="histBody" hidden>
+      <table id="histTable">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th class="cm gsep">Mavreen</th>
+            <th class="cn gsep">Nicole</th>
+            <th class="cu gsep">Non assegnati</th>
+            <th class="tot gsep">Totale</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="note" id="note"></p>
+    </div>
   </div>
 
   <div class="cb-head">
@@ -274,6 +286,7 @@ function renderAll(){
       <td>${r.d}</td>
       <td class="cm gsep">${r.mc}</td><td class="cn gsep">${r.nc}</td><td class="cu gsep">${r.uc}</td><td class="tot gsep">${r.tc}</td>
     </tr>`).join('');
+  document.getElementById('histCount').textContent='· '+VIEW.length+' giorni';
   document.getElementById('note').innerHTML=`<b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno indicato (fuso Europe/Brussels). «Aperti da gestire» = ticket non ancora chiusi in questo momento (stato Open + On Hold), snapshot corrente. Totale chiusi dal 03/07: <b>${cum.toLocaleString('it-IT')}</b>.`;
 }
 
@@ -370,6 +383,8 @@ function renderCB(){
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
+const histToggle=document.getElementById('histToggle');
+histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
 
 /* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
 const WORKER="https://nuumipetdashcustomercare.ciandrinicole.workers.dev/";
