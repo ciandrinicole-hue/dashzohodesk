@@ -1,5 +1,5 @@
 {
- "updated": "29/07/2026",
+ "updated": "04/08/2026",
  "scope": "Nuumipet + The Pawesome",
  "total": {
   "n": 64,
@@ -152,12 +152,12 @@
  "byProduct": [
   {
    "k": "CalmiCollar (abbonamento)",
-   "cont": 2957.59,
+   "cont": 3059.89,
    "cb": 2
   },
   {
    "k": "CalmiCollar",
-   "cont": 961.3,
+   "cont": 1235.61,
    "cb": 2
   },
   {
@@ -166,13 +166,13 @@
    "cb": 9
   },
   {
-   "k": "WonderWalk",
-   "cont": 290.0,
+   "k": "Up 4%",
+   "cont": 359.94,
    "cb": 0
   },
   {
-   "k": "Up 4%",
-   "cont": 270.24,
+   "k": "WonderWalk",
+   "cont": 290.0,
    "cb": 0
   },
   {
