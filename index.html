@@ -65,8 +65,6 @@
   .filterbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .filterbar .flabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
   #monthSel{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:7px 30px 7px 13px;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
-  input[type="date"],input[type="month"]{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;font-family:inherit;color-scheme:dark}
-  html[data-theme="light"] input[type="date"],html[data-theme="light"] input[type="month"]{color-scheme:light}
   .filterbar .pinfo{font-size:12px;color:var(--muted)}
   svg{display:block;width:100%;height:auto;overflow:visible}
   .gl{stroke:var(--grid);stroke-width:1}
@@ -150,12 +148,13 @@
   <div class="filterbar">
     <span class="flabel">Periodo</span>
     <select id="monthSel" aria-label="Filtro per mese"></select>
-    <span class="flabel" style="margin-left:6px">Intervallo personalizzato</span>
-    <input type="date" id="dateFrom" aria-label="Da data">
-    <span class="pinfo">→</span>
-    <input type="date" id="dateTo" aria-label="A data">
-    <button class="tbtn" id="dateClear" type="button">✕ Azzera</button>
     <span id="periodInfo" class="pinfo"></span>
+    <span class="flabel" style="margin-left:auto">Vista</span>
+    <div class="seg" id="tgran">
+      <button type="button" data-t="day" class="on">Giorno</button>
+      <button type="button" data-t="week">Settimana</button>
+      <button type="button" data-t="month">Mese</button>
+    </div>
   </div>
 
   <section class="grid charts">
@@ -200,6 +199,15 @@
 
   <div class="cb-head">
     <div>
+      <h2>Finanza — Numipet</h2>
+      <p>abbonamenti · incassato · perdite · live da Mattia (CheckoutChamp) · <span id="finUpd">—</span></p>
+    </div>
+  </div>
+  <section class="grid kpis" id="finBody"></section>
+  <p class="note" id="finNote"></p>
+
+  <div class="cb-head">
+    <div>
       <h2>Contestazioni USA</h2>
       <p>vinte / perse / aperte · per provider · % su fatturato · <span id="cbUpd">—</span></p>
     </div>
@@ -231,17 +239,14 @@
 
   <div class="cb-sub-head">
     <div>
-      <h3 class="cb-sub-title">% contestazioni su fatturato — mensile</h3>
-      <p class="chart-sub" style="margin:3px 0 0">fatturato incassato (CheckoutChamp, live da Mattia) · <span id="ctFatInfo"></span></p>
+      <h3 class="cb-sub-title">% contestazioni su fatturato</h3>
+      <p class="chart-sub" style="margin:3px 0 0">fatturato Numipet (CheckoutChamp, live) · <span id="ctFatInfo"></span></p>
     </div>
-  </div>
-  <div class="filterbar">
-    <span class="flabel">Intervallo personalizzato</span>
-    <input type="month" id="cbFrom" aria-label="Da mese">
-    <span class="pinfo">→</span>
-    <input type="month" id="cbTo" aria-label="A mese">
-    <button class="tbtn" id="cbClear" type="button">✕ Azzera</button>
-    <span class="pinfo">applicato solo al grafico mensile qui sotto — vedi nota in fondo</span>
+    <div class="seg" id="ctgran">
+      <button type="button" data-c="month" class="on">Mese</button>
+      <button type="button" data-c="week">Settimana</button>
+      <button type="button" data-c="day">Giorno</button>
+    </div>
   </div>
   <div class="card"><div id="ctMonthly"></div></div>
 
@@ -272,19 +277,10 @@ function showTip(html,x,y){tip.innerHTML=html;tip.style.opacity=1;const r=tip.ge
 function hideTip(){tip.style.opacity=0;}
 function niceMax(v){const steps=[10,20,50,100,150,200,300,400,500];for(const s of steps)if(v<=s)return s;return Math.ceil(v/100)*100;}
 let FILTER='all', VIEW=DATA;
+let TGRAN='day';
 const MONTHS={'01':'Gennaio','02':'Febbraio','03':'Marzo','04':'Aprile','05':'Maggio','06':'Giugno','07':'Luglio','08':'Agosto','09':'Settembre','10':'Ottobre','11':'Novembre','12':'Dicembre'};
 function curYear(){const m=(UPDATED||'').match(/\/(\d{4})/);return m?m[1]:'';}
-// "DD/MM" (anno = curYear) -> "YYYY-MM-DD", comparabile come stringa con gli <input type="date">
-function dToISO(d){return curYear()+'-'+d.slice(3,5)+'-'+d.slice(0,2);}
-function fData(){
-  if(FILTER&&FILTER.custom){
-    return DATA.filter(x=>{const iso=dToISO(x.d);
-      if(FILTER.from&&iso<FILTER.from)return false;
-      if(FILTER.to&&iso>FILTER.to)return false;
-      return true;});
-  }
-  return FILTER==='all'?DATA:DATA.filter(x=>x.d.slice(3,5)===FILTER);
-}
+function fData(){return FILTER==='all'?DATA:DATA.filter(x=>x.d.slice(3,5)===FILTER);}
 function buildMonths(){
   const sel=document.getElementById('monthSel');const prev=FILTER;const months=[];
   DATA.forEach(x=>{const mm=x.d.slice(3,5);if(!months.includes(mm))months.push(mm);});
@@ -318,15 +314,7 @@ function renderAll(){
       <div class="l" style="color:var(--muted);font-size:11px;margin-top:6px">andamento chiusi · ${DATA.length} giorni</div></div>`).join('');
 
   buildMonths();VIEW=fData();
-  let periodLabel;
-  if(FILTER&&FILTER.custom){
-    const f=FILTER.from?FILTER.from.split('-').reverse().join('/'):'inizio';
-    const t=FILTER.to?FILTER.to.split('-').reverse().join('/'):'oggi';
-    periodLabel='dal '+f+' al '+t;
-  } else {
-    periodLabel=FILTER==='all'?'tutto il periodo':(MONTHS[FILTER]+' '+curYear());
-  }
-  document.getElementById('periodInfo').textContent=periodLabel+' · '+VIEW.length+' giorni';
+  document.getElementById('periodInfo').textContent=(FILTER==='all'?'tutto il periodo':(MONTHS[FILTER]+' '+curYear()))+' · '+VIEW.length+' giorni';
   document.getElementById('barChart').innerHTML='';barChart();
   totBars();
 
@@ -346,19 +334,30 @@ function sparkline(key,color){
   const lp=pts[pts.length-1];
   return `<svg viewBox="0 0 ${w} ${h}" class="spark"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="3" fill="${color}"/></svg>`;
 }
+function aggView(){
+  if(TGRAN==='day') return VIEW.map(r=>({lab:r.d.slice(0,2),mc:r.mc,nc:r.nc,uc:r.uc,tc:r.tc}));
+  const map={};
+  VIEW.forEach(r=>{const dd=r.d.slice(0,2),mm=r.d.slice(3,5);let key,lab;
+    if(TGRAN==='month'){key=mm;lab=MONM[mm]||mm;}
+    else{const y=curYear()||'2026';const dt=new Date(Date.UTC(+y,+mm-1,+dd));const wd=(dt.getUTCDay()+6)%7;dt.setUTCDate(dt.getUTCDate()-wd);const iso=dt.toISOString().slice(0,10);key=iso;lab=iso.slice(8,10)+'/'+iso.slice(5,7);}
+    const o=map[key]||(map[key]={lab,mc:0,nc:0,uc:0,tc:0});o.mc+=r.mc;o.nc+=r.nc;o.uc+=r.uc;o.tc+=r.tc;});
+  return Object.keys(map).sort().map(k=>map[k]);
+}
 function barChart(){
-  const W=620,H=320,pl=34,pr=8,pt=14,pb=26,plotW=W-pl-pr,plotH=H-pt-pb,n=Math.max(1,VIEW.length);
-  const max=niceMax(Math.max(...VIEW.map(x=>x.tc),1)),gap=plotW/n,bw=Math.min(20,gap*0.66);
+  const PLOT=aggView();
+  const W=620,H=320,pl=34,pr=8,pt=14,pb=26,plotW=W-pl-pr,plotH=H-pt-pb,n=Math.max(1,PLOT.length);
+  const max=niceMax(Math.max(...PLOT.map(x=>x.tc),1)),gap=plotW/n,bw=Math.min(28,gap*0.66);
   const y=v=>pt+plotH-(v/max)*plotH;
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);let g='';
   for(let t=0;t<=max;t+=max/4){const yy=y(t).toFixed(1);g+=`<line class="gl" x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}"/><text class="axl tab" x="${pl-6}" y="${(+yy+3).toFixed(1)}" text-anchor="end">${t}</text>`;}
-  VIEW.forEach((row,i)=>{const cx=pl+gap*i+gap/2,x=cx-bw/2;let acc=0;
+  const showEvery=n<=16?1:Math.ceil(n/16);
+  PLOT.forEach((row,i)=>{const cx=pl+gap*i+gap/2,x=cx-bw/2;let acc=0;
     [['mc',C.m],['nc',C.n],['uc',C.u]].forEach(([k,col])=>{const v=row[k];if(v>0){const yTop=y(acc+v),yBot=y(acc),hh=Math.max(1,yBot-yTop-1);g+=`<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="1.5" fill="${col}"/>`;acc+=v;}});
     g+=`<rect x="${(cx-gap/2).toFixed(1)}" y="${pt}" width="${gap.toFixed(1)}" height="${plotH}" fill="transparent" data-i="${i}" class="barhit"/>`;
-    if(i%3===0||i===n-1)g+=`<text class="axl tab" x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${row.d.slice(0,2)}</text>`;});
+    if(i%showEvery===0||i===n-1)g+=`<text class="axl tab" x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${row.lab}</text>`;});
   svg.innerHTML=g;document.getElementById('barChart').appendChild(svg);
-  svg.querySelectorAll('.barhit').forEach(el=>{el.addEventListener('mousemove',e=>{const r=VIEW[+el.dataset.i];
-    showTip(`<div class="hd">${r.d} — chiusi ${r.tc}</div><div class="row"><span class="lab"><span class="dot m"></span>Mavreen</span><span class="val">${r.mc}</span></div><div class="row"><span class="lab"><span class="dot n"></span>Nicole</span><span class="val">${r.nc}</span></div><div class="row"><span class="lab"><span class="dot u"></span>Non ass.</span><span class="val">${r.uc}</span></div>`,e.clientX,e.clientY);});
+  svg.querySelectorAll('.barhit').forEach(el=>{el.addEventListener('mousemove',e=>{const r=PLOT[+el.dataset.i];
+    showTip(`<div class="hd">${r.lab} — chiusi ${r.tc}</div><div class="row"><span class="lab"><span class="dot m"></span>Mavreen</span><span class="val">${r.mc}</span></div><div class="row"><span class="lab"><span class="dot n"></span>Nicole</span><span class="val">${r.nc}</span></div><div class="row"><span class="lab"><span class="dot u"></span>Non ass.</span><span class="val">${r.uc}</span></div>`,e.clientX,e.clientY);});
     el.addEventListener('mouseleave',hideTip);});
 }
 function totBars(){
@@ -378,17 +377,25 @@ const CT={
     {k:"Stripe ThePawesome · stripe nuumipet", tot:34, v:3, p:19, a:12},
     {k:"conti ita · PayPal FC + Stripe FC", tot:148, v:72, p:46, a:22, agg:true}
   ],
-  monthlyContest:{"2026-01":727,"2026-02":1054,"2026-03":493,"2026-04":4721,"2026-05":5688,"2026-06":5913,"2026-07":7167}
+  monthlyContest:{"2026-01":727,"2026-02":1054,"2026-03":493,"2026-04":4721,"2026-05":5688,"2026-06":5913,"2026-07":7167},
+  usaDaily:[["2026-03-09",47],["2026-03-30",74.85],["2026-04-08",377.86],["2026-04-11",235],["2026-04-20",82.82],["2026-04-22",103.8],["2026-04-24",434.57],["2026-04-27",162.59],["2026-04-29",288.03],["2026-05-04",295.03],["2026-05-05",184.89],["2026-05-07",118.06],["2026-05-08",118.06],["2026-05-12",295.03],["2026-05-13",298.78],["2026-05-14",174.79],["2026-05-16",335.48],["2026-05-20",47],["2026-05-22",338.24],["2026-05-25",356.56],["2026-05-26",110.09],["2026-05-27",51.9],["2026-06-01",264.9],["2026-06-02",110.09],["2026-06-04",135.75],["2026-06-05",110.09],["2026-06-09",51.9],["2026-06-10",449.79],["2026-06-11",525.96],["2026-06-12",320.41],["2026-06-14",83.9],["2026-06-18",394.8],["2026-06-19",59.87],["2026-06-20",362.89],["2026-06-25",209.89],["2026-06-26",311.89],["2026-07-02",470.7],["2026-07-03",124.25],["2026-07-04",385.12],["2026-07-05",169.96],["2026-07-06",198.64],["2026-07-08",278.39],["2026-07-09",212.09],["2026-07-10",198.19],["2026-07-11",136.5],["2026-07-13",430.58],["2026-07-14",314.53],["2026-07-15",39.9],["2026-07-16",368.39],["2026-07-17",192.39],["2026-07-18",120.04],["2026-07-20",440.37],["2026-07-22",368.39],["2026-07-23",234],["2026-07-24",120.04],["2026-07-28",368.39],["2026-07-30",110.09]],
+  contiItaMonthly:{"01":726.95,"02":1054,"03":371,"04":3036.23,"05":2964.21,"06":2521.12,"07":3229.76}
 };
 const MATTIA="https://mattiapaganelli.github.io/meta-slack-reporter/numipet/data.json";
-let FATM=null, FATLAST=null;
+let FATM=null, FATD=null, FATLAST=null, FIN=null;
 const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
 const MONM={'01':'Gen','02':'Feb','03':'Mar','04':'Apr','05':'Mag','06':'Giu','07':'Lug','08':'Ago','09':'Set','10':'Ott','11':'Nov','12':'Dic'};
 function loadFatturato(){
   return fetch(MATTIA+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
-    if(!j||!j.mixed||!Array.isArray(j.mixed.collected_revenue_daily))return;
-    const f={}; j.mixed.collected_revenue_daily.forEach(d=>{const m=d.date.slice(0,7);f[m]=(f[m]||0)+(d.gross||0);});
-    FATM=f; FATLAST=j.mixed.collected_revenue_daily.slice(-1)[0].date;
+    if(!j||!j.mixed)return;
+    const crd=j.mixed.collected_revenue_daily||[];
+    const f={},dd={}; crd.forEach(d=>{const m=d.date.slice(0,7);f[m]=(f[m]||0)+(d.gross||0);dd[d.date]=(dd[d.date]||0)+(d.gross||0);});
+    FATM=f; FATD=dd; if(crd.length)FATLAST=crd[crd.length-1].date;
+    const pr=j.mixed.profit||{},t=j.mixed.totals||{};
+    const lm=Object.keys(f).sort().pop();
+    FIN={cur:j.currency_symbol||'$',net_mrr:pr.net_mrr,gross_mrr:pr.gross_mrr,margin:pr.margin_pct,subs:t.active_subscribers,
+      loss:j.mixed.loss_rate_combined_pct,disp:j.mixed.disputes||{},refs:j.mixed.refunds||{},dun:j.mixed.dunning||{},
+      incMese:lm?Math.round(f[lm]):null,incMeseLbl:lm};
   }).catch(()=>{});
 }
 function pctStr(x){return (Math.round(x*10)/10).toString().replace('.',',')+'%';}
@@ -407,60 +414,54 @@ function renderContest(){
       <div style="display:flex;gap:18px;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums"><span style="color:var(--good)">${p.v} vinte (${pctStr(pv)})</span><span style="color:var(--n)">${p.p} perse (${pctStr(pp)})</span><span style="color:var(--muted)">${p.a} aperte</span></div>
     </div>`;
   }).join('');
-  renderMonthlyPct();
-  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. La copertura fatturato parte da met\u00e0 gennaio e arriva al ${FATLAST||'\u2014'}: <b>Gennaio e l'ultimo mese sono parziali</b>, quindi l\u00ec la % \u00e8 sovrastimata. <b>Nota sull'intervallo personalizzato:</b> il filtro sopra si applica solo a questo grafico mensile. «Contestazioni totali», «Esito» e «Per provider» restano cumulati sull'intero anno perch\u00e9 i dati sorgente (foglio dispute) non riportano ancora una data per singola contestazione con esito \u2014 per estenderlo servirebbe un export riga-per-riga con data ed esito.`;
+  renderFinanza();renderPctNow();renderPctSeries();
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. Denominatore = fatturato <b>Numipet</b> (Mattia). Copertura da met\u00e0 gennaio al ${FATLAST||'\u2014'}: Gennaio e ultimo mese parziali. Nelle viste <b>Settimana/Giorno</b> le contestazioni sono solo USA (conti ita \u00e8 tracciato solo per mese).`;
 }
-document.getElementById('cbFrom').addEventListener('change',e=>{CB_FILTER.from=e.target.value||null;renderMonthlyPct();});
-document.getElementById('cbTo').addEventListener('change',e=>{CB_FILTER.to=e.target.value||null;renderMonthlyPct();});
-document.getElementById('cbClear').addEventListener('click',()=>{
-  document.getElementById('cbFrom').value='';document.getElementById('cbTo').value='';
-  CB_FILTER={from:null,to:null};renderMonthlyPct();
-});
-let CB_FILTER={from:null,to:null};
-function renderMonthlyPct(){
-  const cont=CT.monthlyContest, fat=FATM||{};
-  let months=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]);
-  if(CB_FILTER.from)months=months.filter(m=>m>=CB_FILTER.from);
-  if(CB_FILTER.to)months=months.filter(m=>m<=CB_FILTER.to);
-  const rows=months.map(m=>({m,c:cont[m]||0,f:fat[m]||0,pct:(fat[m])?((cont[m]||0)/fat[m]*100):null}));
+function isoWK(iso){const p=iso.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
+function contMonthly(){const c={};(CT.usaDaily||[]).forEach(([d,a])=>{const m=d.slice(0,7);c[m]=(c[m]||0)+a;});const ci=CT.contiItaMonthly||{};Object.keys(ci).forEach(mm=>{c['2026-'+mm]=(c['2026-'+mm]||0)+ci[mm];});return c;}
+function renderPctNow(){
+  const cont=contMonthly(),fat=FATM||{};const now=Object.keys(fat).sort().pop();
+  if(now&&fat[now]){const p=(cont[now]||0)/fat[now]*100;document.getElementById('ctPctNow').textContent=pctStr(p);
+    document.getElementById('ctPctNowSub').textContent=(MONM[now.slice(5,7)]||'')+' '+now.slice(0,4)+' · '+money(cont[now]||0)+' / '+money(fat[now])+(FATLAST&&now===FATLAST.slice(0,7)?' (in corso)':'');}
+  else{document.getElementById('ctPctNow').textContent='\u2014';document.getElementById('ctPctNowSub').textContent='fatturato non disponibile';}
+}
+let CTGRAN='month';
+function renderPctSeries(){
+  const usa=CT.usaDaily||[];let rows=[],note='';
+  if(CTGRAN==='month'){const cont=contMonthly(),fat=FATM||{};
+    const ms=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]);
+    rows=ms.map(m=>({lab:(MONM[m.slice(5,7)]||m)+' '+m.slice(0,4),c:cont[m]||0,f:fat[m]||0}));}
+  else if(CTGRAN==='week'){const cont={};usa.forEach(([d,a])=>{const k=isoWK(d);cont[k]=(cont[k]||0)+a;});
+    const fat={};if(FATD)Object.keys(FATD).forEach(d=>{const k=isoWK(d);fat[k]=(fat[k]||0)+FATD[d];});
+    rows=Object.keys(cont).sort().map(k=>({lab:'sett. '+k.slice(8,10)+'/'+k.slice(5,7),c:cont[k],f:fat[k]||0}));
+    note=' · solo USA (conti ita solo mensile)';}
+  else{const fat=FATD||{};rows=usa.map(([d,a])=>({lab:d.slice(8,10)+'/'+d.slice(5,7),c:a,f:fat[d]||0}));note=' · solo USA (conti ita solo mensile)';}
+  rows.forEach(r=>r.pct=r.f?r.c/r.f*100:null);
   const maxP=Math.max(...rows.map(r=>r.pct||0),0.1);
-  document.getElementById('ctMonthly').innerHTML=rows.map(r=>{
-    const lab=(MONM[r.m.slice(5,7)]||r.m)+' '+r.m.slice(0,4);
-    const pv=r.pct==null?'n/d':pctStr(r.pct);
-    return `<div class="rbar-row"><div class="lab">${lab}</div><div class="rbar-track"><div class="rbar-fill" style="width:${r.pct?(r.pct/maxP*100).toFixed(1):0}%;background:var(--warn)"></div></div><div class="rbar-val">${pv} <span class="cnt">${money(r.c)}/${money(r.f)}</span></div></div>`;
-  }).join('');
-  const now=months[months.length-1];
-  if(now && fat[now]){
-    const p=(cont[now]||0)/fat[now]*100;
-    document.getElementById('ctPctNow').textContent=pctStr(p);
-    document.getElementById('ctPctNowSub').textContent=(MONM[now.slice(5,7)]||'')+' '+now.slice(0,4)+' · '+money(cont[now]||0)+' / '+money(fat[now])+(FATLAST&&now===FATLAST.slice(0,7)?' (in corso)':'');
-  } else { document.getElementById('ctPctNow').textContent='\u2014'; document.getElementById('ctPctNowSub').textContent='fatturato non disponibile'; }
-  document.getElementById('ctFatInfo').textContent=FATLAST?('dati al '+FATLAST.slice(8,10)+'/'+FATLAST.slice(5,7)):'in caricamento\u2026';
+  document.getElementById('ctMonthly').innerHTML=rows.map(r=>{const pv=r.pct==null?'n/d':pctStr(r.pct);
+    return `<div class="rbar-row"><div class="lab">${r.lab}</div><div class="rbar-track"><div class="rbar-fill" style="width:${r.pct?(r.pct/maxP*100).toFixed(1):0}%;background:var(--warn)"></div></div><div class="rbar-val">${pv} <span class="cnt">${money(r.c)}/${money(r.f)}</span></div></div>`;}).join('');
+  document.getElementById('ctFatInfo').textContent=(FATLAST?('dati al '+FATLAST.slice(8,10)+'/'+FATLAST.slice(5,7)):'in caricamento\u2026')+note;
 }
-
+function renderFinanza(){
+  const el=document.getElementById('finBody');if(!el)return;
+  if(!FIN){el.innerHTML='<div class="card"><p class="chart-sub">Caricamento dati finanziari live…</p></div>';document.getElementById('finNote').textContent='';return;}
+  const c=FIN.cur,mm=v=>c+' '+Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const tile=(lab,val,sub)=>`<div class="card kpi"><h3>${lab}</h3><div class="big" style="font-size:clamp(24px,3.4vw,36px)">${val}</div><div class="sub">${sub||''}</div></div>`;
+  el.innerHTML=tile('MRR netto',mm(FIN.net_mrr),'margine '+(FIN.margin!=null?FIN.margin+'%':'—')+' · lordo '+mm(FIN.gross_mrr))+
+    tile('Abbonati attivi',(FIN.subs||0).toLocaleString('it-IT'),'clienti in abbonamento')+
+    tile('Incassato '+(MONM[(FIN.incMeseLbl||'').slice(5,7)]||''),mm(FIN.incMese),'mese in corso (parziale)')+
+    tile('Tasso perdite',(FIN.loss!=null?FIN.loss+'%':'—'),'rimborsi + dispute / lifetime');
+  const d=FIN.disp||{},rf=FIN.refs||{},du=FIN.dun||{};
+  document.getElementById('finNote').innerHTML=`<b>Ultimi 30 giorni.</b> Dispute ${d.last_30d_count||0} (${mm(d.last_30d_amount)}) · Rimborsi ${rf.last_30d_count||0} (${mm(rf.last_30d_amount)}) · A rischio dunning ${du.count||0} (${mm(du.amount_at_risk)}). <b>Fonte:</b> dashboard Subscription Health di Mattia (CheckoutChamp), live.`;
+  document.getElementById('finUpd').textContent='live';
+}
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
-document.getElementById('monthSel').addEventListener('change',e=>{
-  FILTER=e.target.value;
-  document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';
-  renderAll();
-});
-function applyCustomRange(){
-  const from=document.getElementById('dateFrom').value||null;
-  const to=document.getElementById('dateTo').value||null;
-  if(!from&&!to)return;
-  FILTER={custom:true,from,to};
-  document.getElementById('monthSel').value='all';
-  renderAll();
-}
-document.getElementById('dateFrom').addEventListener('change',applyCustomRange);
-document.getElementById('dateTo').addEventListener('change',applyCustomRange);
-document.getElementById('dateClear').addEventListener('click',()=>{
-  document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';
-  FILTER='all';document.getElementById('monthSel').value='all';renderAll();
-});
+document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
 const histToggle=document.getElementById('histToggle');
 histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
+document.getElementById('tgran').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;TGRAN=b.dataset.t;document.querySelectorAll('#tgran button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('barChart').innerHTML='';barChart();});
+document.getElementById('ctgran').addEventListener('click',e=>{const b=e.target.closest('button[data-c]');if(!b)return;CTGRAN=b.dataset.c;document.querySelectorAll('#ctgran button').forEach(x=>x.classList.toggle('on',x===b));renderPctSeries();});
 
 /* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
 const WORKER="https://nuumipetdashcustomercare.ciandrinicole.workers.dev/";
