@@ -65,6 +65,8 @@
   .filterbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .filterbar .flabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
   #monthSel{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:7px 30px 7px 13px;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  input[type="date"],input[type="month"]{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;font-family:inherit;color-scheme:dark}
+  html[data-theme="light"] input[type="date"],html[data-theme="light"] input[type="month"]{color-scheme:light}
   .filterbar .pinfo{font-size:12px;color:var(--muted)}
   svg{display:block;width:100%;height:auto;overflow:visible}
   .gl{stroke:var(--grid);stroke-width:1}
@@ -148,6 +150,11 @@
   <div class="filterbar">
     <span class="flabel">Periodo</span>
     <select id="monthSel" aria-label="Filtro per mese"></select>
+    <span class="flabel" style="margin-left:6px">Intervallo personalizzato</span>
+    <input type="date" id="dateFrom" aria-label="Da data">
+    <span class="pinfo">→</span>
+    <input type="date" id="dateTo" aria-label="A data">
+    <button class="tbtn" id="dateClear" type="button">✕ Azzera</button>
     <span id="periodInfo" class="pinfo"></span>
   </div>
 
@@ -228,6 +235,14 @@
       <p class="chart-sub" style="margin:3px 0 0">fatturato incassato (CheckoutChamp, live da Mattia) · <span id="ctFatInfo"></span></p>
     </div>
   </div>
+  <div class="filterbar">
+    <span class="flabel">Intervallo personalizzato</span>
+    <input type="month" id="cbFrom" aria-label="Da mese">
+    <span class="pinfo">→</span>
+    <input type="month" id="cbTo" aria-label="A mese">
+    <button class="tbtn" id="cbClear" type="button">✕ Azzera</button>
+    <span class="pinfo">applicato solo al grafico mensile qui sotto — vedi nota in fondo</span>
+  </div>
   <div class="card"><div id="ctMonthly"></div></div>
 
   <p class="note" id="cbNote"></p>
@@ -259,7 +274,17 @@ function niceMax(v){const steps=[10,20,50,100,150,200,300,400,500];for(const s o
 let FILTER='all', VIEW=DATA;
 const MONTHS={'01':'Gennaio','02':'Febbraio','03':'Marzo','04':'Aprile','05':'Maggio','06':'Giugno','07':'Luglio','08':'Agosto','09':'Settembre','10':'Ottobre','11':'Novembre','12':'Dicembre'};
 function curYear(){const m=(UPDATED||'').match(/\/(\d{4})/);return m?m[1]:'';}
-function fData(){return FILTER==='all'?DATA:DATA.filter(x=>x.d.slice(3,5)===FILTER);}
+// "DD/MM" (anno = curYear) -> "YYYY-MM-DD", comparabile come stringa con gli <input type="date">
+function dToISO(d){return curYear()+'-'+d.slice(3,5)+'-'+d.slice(0,2);}
+function fData(){
+  if(FILTER&&FILTER.custom){
+    return DATA.filter(x=>{const iso=dToISO(x.d);
+      if(FILTER.from&&iso<FILTER.from)return false;
+      if(FILTER.to&&iso>FILTER.to)return false;
+      return true;});
+  }
+  return FILTER==='all'?DATA:DATA.filter(x=>x.d.slice(3,5)===FILTER);
+}
 function buildMonths(){
   const sel=document.getElementById('monthSel');const prev=FILTER;const months=[];
   DATA.forEach(x=>{const mm=x.d.slice(3,5);if(!months.includes(mm))months.push(mm);});
@@ -293,7 +318,15 @@ function renderAll(){
       <div class="l" style="color:var(--muted);font-size:11px;margin-top:6px">andamento chiusi · ${DATA.length} giorni</div></div>`).join('');
 
   buildMonths();VIEW=fData();
-  document.getElementById('periodInfo').textContent=(FILTER==='all'?'tutto il periodo':(MONTHS[FILTER]+' '+curYear()))+' · '+VIEW.length+' giorni';
+  let periodLabel;
+  if(FILTER&&FILTER.custom){
+    const f=FILTER.from?FILTER.from.split('-').reverse().join('/'):'inizio';
+    const t=FILTER.to?FILTER.to.split('-').reverse().join('/'):'oggi';
+    periodLabel='dal '+f+' al '+t;
+  } else {
+    periodLabel=FILTER==='all'?'tutto il periodo':(MONTHS[FILTER]+' '+curYear());
+  }
+  document.getElementById('periodInfo').textContent=periodLabel+' · '+VIEW.length+' giorni';
   document.getElementById('barChart').innerHTML='';barChart();
   totBars();
 
@@ -375,11 +408,20 @@ function renderContest(){
     </div>`;
   }).join('');
   renderMonthlyPct();
-  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. La copertura fatturato parte da met\u00e0 gennaio e arriva al ${FATLAST||'\u2014'}: <b>Gennaio e l'ultimo mese sono parziali</b>, quindi l\u00ec la % \u00e8 sovrastimata.`;
+  document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. La copertura fatturato parte da met\u00e0 gennaio e arriva al ${FATLAST||'\u2014'}: <b>Gennaio e l'ultimo mese sono parziali</b>, quindi l\u00ec la % \u00e8 sovrastimata. <b>Nota sull'intervallo personalizzato:</b> il filtro sopra si applica solo a questo grafico mensile. «Contestazioni totali», «Esito» e «Per provider» restano cumulati sull'intero anno perch\u00e9 i dati sorgente (foglio dispute) non riportano ancora una data per singola contestazione con esito \u2014 per estenderlo servirebbe un export riga-per-riga con data ed esito.`;
 }
+document.getElementById('cbFrom').addEventListener('change',e=>{CB_FILTER.from=e.target.value||null;renderMonthlyPct();});
+document.getElementById('cbTo').addEventListener('change',e=>{CB_FILTER.to=e.target.value||null;renderMonthlyPct();});
+document.getElementById('cbClear').addEventListener('click',()=>{
+  document.getElementById('cbFrom').value='';document.getElementById('cbTo').value='';
+  CB_FILTER={from:null,to:null};renderMonthlyPct();
+});
+let CB_FILTER={from:null,to:null};
 function renderMonthlyPct(){
   const cont=CT.monthlyContest, fat=FATM||{};
-  const months=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]);
+  let months=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]);
+  if(CB_FILTER.from)months=months.filter(m=>m>=CB_FILTER.from);
+  if(CB_FILTER.to)months=months.filter(m=>m<=CB_FILTER.to);
   const rows=months.map(m=>({m,c:cont[m]||0,f:fat[m]||0,pct:(fat[m])?((cont[m]||0)/fat[m]*100):null}));
   const maxP=Math.max(...rows.map(r=>r.pct||0),0.1);
   document.getElementById('ctMonthly').innerHTML=rows.map(r=>{
@@ -398,7 +440,25 @@ function renderMonthlyPct(){
 
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
-document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
+document.getElementById('monthSel').addEventListener('change',e=>{
+  FILTER=e.target.value;
+  document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';
+  renderAll();
+});
+function applyCustomRange(){
+  const from=document.getElementById('dateFrom').value||null;
+  const to=document.getElementById('dateTo').value||null;
+  if(!from&&!to)return;
+  FILTER={custom:true,from,to};
+  document.getElementById('monthSel').value='all';
+  renderAll();
+}
+document.getElementById('dateFrom').addEventListener('change',applyCustomRange);
+document.getElementById('dateTo').addEventListener('change',applyCustomRange);
+document.getElementById('dateClear').addEventListener('click',()=>{
+  document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';
+  FILTER='all';document.getElementById('monthSel').value='all';renderAll();
+});
 const histToggle=document.getElementById('histToggle');
 histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
 
