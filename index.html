@@ -64,7 +64,7 @@
   .legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:2px 0 10px;font-size:12px;color:var(--ink-2)}
   .filterbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .filterbar .flabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-  #monthSel{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:7px 30px 7px 13px;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  #monthSel,#ctperSel{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:999px;padding:7px 30px 7px 13px;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
   .filterbar .pinfo{font-size:12px;color:var(--muted)}
   svg{display:block;width:100%;height:auto;overflow:visible}
   .gl{stroke:var(--grid);stroke-width:1}
@@ -211,13 +211,22 @@
       <h2>Contestazioni USA</h2>
       <p>vinte / perse / aperte · per provider · % su fatturato · <span id="cbUpd">—</span></p>
     </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="seg" id="ctper">
+        <button type="button" data-p="all" class="on">Tutto</button>
+        <button type="button" data-p="month">Mese</button>
+        <button type="button" data-p="week">Settimana</button>
+        <button type="button" data-p="day">Giorno</button>
+      </div>
+      <select id="ctperSel" style="display:none" aria-label="Periodo contestazioni"></select>
+    </div>
   </div>
 
   <div class="grid cb-grid">
     <div class="card cb-total">
       <h3>Contestazioni totali</h3>
       <div class="big" id="ctTot">—</div>
-      <div class="lbl">aperte nel 2026 · <span id="ctScope">Nuumipet + The Pawesome</span></div>
+      <div class="lbl" id="ctTotLbl">aperte nel 2026 · Nuumipet + The Pawesome</div>
     </div>
     <div class="card">
       <h3>Esito</h3>
@@ -225,7 +234,7 @@
       <div id="ctEsito" style="margin-top:12px"></div>
     </div>
     <div class="card">
-      <h3>% su fatturato — mese corrente</h3>
+      <h3 id="ctPctTitle">% su fatturato — totale</h3>
       <div class="big amt" id="ctPctNow">—</div>
       <div class="lbl" id="ctPctNowSub"></div>
     </div>
@@ -379,7 +388,9 @@ const CT={
   ],
   monthlyContest:{"2026-01":727,"2026-02":1054,"2026-03":493,"2026-04":4721,"2026-05":5688,"2026-06":5913,"2026-07":7167},
   usaDaily:[["2026-03-09",47],["2026-03-30",74.85],["2026-04-08",377.86],["2026-04-11",235],["2026-04-20",82.82],["2026-04-22",103.8],["2026-04-24",434.57],["2026-04-27",162.59],["2026-04-29",288.03],["2026-05-04",295.03],["2026-05-05",184.89],["2026-05-07",118.06],["2026-05-08",118.06],["2026-05-12",295.03],["2026-05-13",298.78],["2026-05-14",174.79],["2026-05-16",335.48],["2026-05-20",47],["2026-05-22",338.24],["2026-05-25",356.56],["2026-05-26",110.09],["2026-05-27",51.9],["2026-06-01",264.9],["2026-06-02",110.09],["2026-06-04",135.75],["2026-06-05",110.09],["2026-06-09",51.9],["2026-06-10",449.79],["2026-06-11",525.96],["2026-06-12",320.41],["2026-06-14",83.9],["2026-06-18",394.8],["2026-06-19",59.87],["2026-06-20",362.89],["2026-06-25",209.89],["2026-06-26",311.89],["2026-07-02",470.7],["2026-07-03",124.25],["2026-07-04",385.12],["2026-07-05",169.96],["2026-07-06",198.64],["2026-07-08",278.39],["2026-07-09",212.09],["2026-07-10",198.19],["2026-07-11",136.5],["2026-07-13",430.58],["2026-07-14",314.53],["2026-07-15",39.9],["2026-07-16",368.39],["2026-07-17",192.39],["2026-07-18",120.04],["2026-07-20",440.37],["2026-07-22",368.39],["2026-07-23",234],["2026-07-24",120.04],["2026-07-28",368.39],["2026-07-30",110.09]],
-  contiItaMonthly:{"01":726.95,"02":1054,"03":371,"04":3036.23,"05":2964.21,"06":2521.12,"07":3229.76}
+  contiItaMonthly:{"01":726.95,"02":1054,"03":371,"04":3036.23,"05":2964.21,"06":2521.12,"07":3229.76},
+  recapUsaDaily:[["2026-03-09",1,0,1,0,47],["2026-03-30",1,0,0,1,74.85],["2026-04-08",3,0,3,0,377.86],["2026-04-11",5,0,3,2,235],["2026-04-20",2,0,2,0,82.82],["2026-04-22",2,0,2,0,103.8],["2026-04-24",6,1,0,5,434.57],["2026-04-27",2,1,1,0,162.59],["2026-04-29",2,1,1,0,288.03],["2026-05-04",3,2,0,1,295.03],["2026-05-05",2,2,0,0,184.89],["2026-05-07",1,0,1,0,118.06],["2026-05-08",1,1,0,0,118.06],["2026-05-12",3,3,0,0,295.03],["2026-05-13",2,0,2,0,298.78],["2026-05-14",2,2,0,0,174.79],["2026-05-16",2,1,1,0,335.48],["2026-05-20",1,0,1,0,47],["2026-05-22",3,3,0,0,338.24],["2026-05-25",3,3,0,0,356.56],["2026-05-26",1,0,1,0,110.09],["2026-05-27",1,0,1,0,51.9],["2026-06-01",3,3,0,0,264.9],["2026-06-02",1,1,0,0,110.09],["2026-06-04",3,0,0,3,135.75],["2026-06-05",1,0,0,1,110.09],["2026-06-09",1,1,0,0,51.9],["2026-06-10",4,0,4,0,449.79],["2026-06-11",5,4,1,0,525.96],["2026-06-12",3,0,1,2,320.41],["2026-06-14",1,0,0,1,83.9],["2026-06-18",5,0,2,3,394.8],["2026-06-19",1,1,0,0,59.87],["2026-06-20",3,1,2,0,362.89],["2026-06-25",2,0,1,1,209.89],["2026-06-26",3,0,0,3,311.89],["2026-07-02",5,1,0,3,470.7],["2026-07-03",2,0,0,1,124.25],["2026-07-04",5,0,0,3,385.12],["2026-07-05",2,0,0,1,169.96],["2026-07-06",2,0,1,1,198.64],["2026-07-08",2,0,1,1,278.39],["2026-07-09",2,2,0,0,212.09],["2026-07-10",2,1,1,0,198.19],["2026-07-11",2,1,0,1,136.5],["2026-07-13",5,2,3,0,430.58],["2026-07-14",2,0,2,0,314.53],["2026-07-15",1,0,0,0,39.9],["2026-07-16",2,1,0,1,368.39],["2026-07-17",2,0,0,2,192.39],["2026-07-18",1,0,0,0,120.04],["2026-07-20",3,0,1,1,440.37],["2026-07-22",2,0,0,2,368.39],["2026-07-23",3,0,3,0,234],["2026-07-24",1,0,1,0,120.04],["2026-07-28",1,0,0,1,368.39],["2026-07-30",1,0,0,0,110.09]],
+  recapCi:{"01":{"tot":11,"v":2,"p":2,"a":0,"imp":726.95},"02":{"tot":15,"v":2,"p":4,"a":0,"imp":1054},"03":{"tot":5,"v":1,"p":7,"a":0,"imp":371},"04":{"tot":34,"v":5,"p":2,"a":5,"imp":3036.23},"05":{"tot":34,"v":33,"p":19,"a":3,"imp":2964.21},"06":{"tot":23,"v":16,"p":8,"a":3,"imp":2521.12},"07":{"tot":30,"v":14,"p":4,"a":13,"imp":3229.76}}
 };
 const MATTIA="https://mattiapaganelli.github.io/meta-slack-reporter/numipet/data.json";
 let FATM=null, FATD=null, FATLAST=null, FIN=null;
@@ -401,10 +412,7 @@ function loadFatturato(){
 function pctStr(x){return (Math.round(x*10)/10).toString().replace('.',',')+'%';}
 function renderContest(){
   document.getElementById('cbUpd').textContent='agg. '+CT.updated;
-  document.getElementById('ctTot').textContent=CT.total;
-  const maxE=Math.max(CT.vinte,CT.perse,CT.aperte,1);
-  const bar=(lab,val,pct,col)=>`<div class="hbar-row"><div class="lab">${lab}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(val/maxE*100).toFixed(1)}%;background:${col}"></div></div><div class="hbar-val">${val}${pct!=null?' \u00b7 '+pct+'%':''}</div></div>`;
-  document.getElementById('ctEsito').innerHTML=bar('Vinte',CT.vinte,CT.pv,'var(--good)')+bar('Perse',CT.perse,CT.pp,'var(--n)')+bar('Aperte',CT.aperte,null,'var(--muted)');
+  renderRecap();
   document.getElementById('ctProv').innerHTML=CT.provider.map(p=>{
     const chiuse=p.v+p.p; const pv=chiuse?Math.round(p.v/chiuse*1000)/10:0; const pp=chiuse?Math.round(p.p/chiuse*1000)/10:0;
     const seg=(v,col)=>`<span style="display:inline-block;height:9px;width:${(v/p.tot*100).toFixed(1)}%;background:${col}"></span>`;
@@ -414,7 +422,7 @@ function renderContest(){
       <div style="display:flex;gap:18px;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums"><span style="color:var(--good)">${p.v} vinte (${pctStr(pv)})</span><span style="color:var(--n)">${p.p} perse (${pctStr(pp)})</span><span style="color:var(--muted)">${p.a} aperte</span></div>
     </div>`;
   }).join('');
-  renderFinanza();renderPctNow();renderPctSeries();
+  renderFinanza();renderPctSeries();
   document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. Denominatore = fatturato <b>Numipet</b> (Mattia). Copertura da met\u00e0 gennaio al ${FATLAST||'\u2014'}: Gennaio e ultimo mese parziali. Nelle viste <b>Settimana/Giorno</b> le contestazioni sono solo USA (conti ita \u00e8 tracciato solo per mese).`;
 }
 function isoWK(iso){const p=iso.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
@@ -455,6 +463,41 @@ function renderFinanza(){
   document.getElementById('finNote').innerHTML=`<b>Ultimi 30 giorni.</b> Dispute ${d.last_30d_count||0} (${mm(d.last_30d_amount)}) · Rimborsi ${rf.last_30d_count||0} (${mm(rf.last_30d_amount)}) · A rischio dunning ${du.count||0} (${mm(du.amount_at_risk)}). <b>Fonte:</b> dashboard Subscription Health di Mattia (CheckoutChamp), live.`;
   document.getElementById('finUpd').textContent='live';
 }
+let CTPER={g:'all',k:null};
+function periodKeys(g){const usa=CT.recapUsaDaily||[];
+  if(g==='month'){const s=new Set();usa.forEach(r=>s.add(r[0].slice(0,7)));Object.keys(CT.recapCi||{}).forEach(mm=>s.add('2026-'+mm));return [...s].sort();}
+  if(g==='week'){const s=new Set();usa.forEach(r=>s.add(isoWK(r[0])));return [...s].sort();}
+  if(g==='day'){return usa.map(r=>r[0]);}
+  return [];}
+function periodLabel(g,k){if(g==='month')return (MONM[k.slice(5,7)]||k)+' '+k.slice(0,4);
+  if(g==='week')return 'sett. dal '+k.slice(8,10)+'/'+k.slice(5,7);
+  if(g==='day')return k.slice(8,10)+'/'+k.slice(5,7)+'/'+k.slice(0,4);return 'tutto il periodo';}
+function computeRecap(){const usa=CT.recapUsaDaily||[],ci=CT.recapCi||{};let n=0,v=0,p=0,a=0,imp=0,ciInc=false;const g=CTPER.g,k=CTPER.k;
+  const au=r=>{n+=r[1];v+=r[2];p+=r[3];a+=r[4];imp+=r[5];};const ac=o=>{n+=o.tot;v+=o.v;p+=o.p;a+=o.a;imp+=o.imp;ciInc=true;};
+  if(g==='all'){usa.forEach(au);Object.values(ci).forEach(ac);}
+  else if(g==='month'){usa.forEach(r=>{if(r[0].slice(0,7)===k)au(r);});if(ci[k.slice(5,7)])ac(ci[k.slice(5,7)]);}
+  else if(g==='week'){usa.forEach(r=>{if(isoWK(r[0])===k)au(r);});}
+  else if(g==='day'){usa.forEach(r=>{if(r[0]===k)au(r);});}
+  return {n,v,p,a,imp,ciInc};}
+function fatFor(g,k){if(g==='all'){if(!FATM)return null;let t=0;Object.values(FATM).forEach(x=>t+=x);return t;}
+  if(g==='month')return (FATM||{})[k]||null;
+  if(g==='week'){if(!FATD)return null;let t=0;Object.keys(FATD).forEach(d=>{if(isoWK(d)===k)t+=FATD[d];});return t||null;}
+  if(g==='day')return (FATD||{})[k]||null;return null;}
+function renderRecap(){const r=computeRecap();
+  document.getElementById('ctTot').textContent=r.n;
+  document.getElementById('ctTotLbl').textContent=(CTPER.g==='all'?'aperte nel 2026':periodLabel(CTPER.g,CTPER.k))+(r.ciInc?' · USA + conti ita':' · solo USA');
+  const chiuse=r.v+r.p,pv=chiuse?r.v/chiuse*100:0,pp=chiuse?r.p/chiuse*100:0,maxE=Math.max(r.v,r.p,r.a,1);
+  const bar=(lab,val,pct,col)=>`<div class="hbar-row"><div class="lab">${lab}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(val/maxE*100).toFixed(1)}%;background:${col}"></div></div><div class="hbar-val">${val}${pct!=null?' \u00b7 '+pctStr(pct):''}</div></div>`;
+  document.getElementById('ctEsito').innerHTML=bar('Vinte',r.v,pv,'var(--good)')+bar('Perse',r.p,pp,'var(--n)')+bar('Aperte',r.a,null,'var(--muted)');
+  const fat=fatFor(CTPER.g,CTPER.k);
+  document.getElementById('ctPctTitle').textContent='% su fatturato — '+(CTPER.g==='all'?'totale':periodLabel(CTPER.g,CTPER.k));
+  if(fat&&fat>0){document.getElementById('ctPctNow').textContent=pctStr(r.imp/fat*100);document.getElementById('ctPctNowSub').textContent=money(r.imp)+' / '+money(fat)+(r.ciInc?'':' · solo USA');}
+  else{document.getElementById('ctPctNow').textContent='\u2014';document.getElementById('ctPctNowSub').textContent='fatturato non disponibile';}}
+document.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('#ctper button[data-p]');if(!b)return;const g=b.dataset.p;document.querySelectorAll('#ctper button').forEach(x=>x.classList.toggle('on',x===b));const sel=document.getElementById('ctperSel');
+  if(g==='all'){CTPER={g:'all',k:null};sel.style.display='none';}
+  else{const keys=periodKeys(g);sel.innerHTML=keys.map(k=>`<option value="${k}">${periodLabel(g,k)}</option>`).join('');const last=keys[keys.length-1];CTPER={g,k:last};sel.value=last;sel.style.display='';}
+  renderRecap();});
+document.addEventListener('change',ev=>{if(ev.target&&ev.target.id==='ctperSel'){CTPER.k=ev.target.value;renderRecap();}});
 const tb=document.getElementById('themeBtn');
 tb.addEventListener('click',()=>{const light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');tb.textContent=light?'☀︎ Tema chiaro':'☾ Tema scuro';renderAll();});
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
