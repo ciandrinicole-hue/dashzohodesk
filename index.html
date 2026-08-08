@@ -278,6 +278,60 @@
   <div class="card"><div id="ctMonthly"></div></div>
 
   <p class="note" id="cbNote"></p>
+
+  <div class="cb-head">
+    <div>
+      <h2>Analisi email clienti &mdash; temi</h2>
+      <p>ripartizione per area tematica &middot; reparto Nuumipet Support &middot; 1.999 email dal 04/07 all'08/08/2026 &middot; <span style="color:var(--muted)">snapshot 08/08/2026</span></p>
+    </div>
+  </div>
+
+  <section class="grid kpis">
+    <div class="card kpi"><h3>Email analizzate</h3><div class="big">1.999</div><div class="sub">04/07 &rarr; 08/08/2026</div></div>
+    <div class="card kpi"><h3>Annullamento abbonamento</h3><div class="big" style="color:var(--n)">68,9%</div><div class="sub">~1.377 email</div></div>
+    <div class="card kpi"><h3>Addebito non autorizzato</h3><div class="big" style="color:var(--warn)">8,0%</div><div class="sub">~159 email &middot; ~63 alert dispute</div></div>
+    <div class="card kpi"><h3>Richieste di reso / rimborso</h3><div class="big" style="color:var(--m)">7,6%</div><div class="sub">~152 email</div></div>
+  </section>
+
+  <div class="card">
+    <h3 style="margin-bottom:4px">Temi delle email</h3>
+    <p class="chart-sub">quota sul totale &middot; numero stimato di email</p>
+    <div style="margin-top:14px">
+      <div class="rbar-row"><div class="lab">Annullamento abbonamento</div><div class="rbar-track"><div class="rbar-fill" style="width:68.9%;background:var(--n)"></div></div><div class="rbar-val"><span class="cnt">1.377</span>68,9%</div></div>
+      <div class="rbar-row"><div class="lab">Altro (spam, interni, domande)</div><div class="rbar-track"><div class="rbar-fill" style="width:13.0%;background:var(--muted)"></div></div><div class="rbar-val"><span class="cnt">259</span>13,0%</div></div>
+      <div class="rbar-row"><div class="lab">Addebito non autorizzato / non riconosciuto</div><div class="rbar-track"><div class="rbar-fill" style="width:8.0%;background:var(--warn)"></div></div><div class="rbar-val"><span class="cnt">159</span>8,0%</div></div>
+      <div class="rbar-row"><div class="lab">Richieste di reso / rimborso</div><div class="rbar-track"><div class="rbar-fill" style="width:7.6%;background:var(--m)"></div></div><div class="rbar-val"><span class="cnt">152</span>7,6%</div></div>
+      <div class="rbar-row"><div class="lab">Spedizione / consegna (dov'&egrave; il mio ordine)</div><div class="rbar-track"><div class="rbar-fill" style="width:2.6%;background:var(--u)"></div></div><div class="rbar-val"><span class="cnt">52</span>2,6%</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:4px">Perch&eacute; annullano &mdash; motivazioni</h3>
+    <p class="chart-sub">% degli annullamenti &middot; da campione letto di 43 richieste di annullamento</p>
+    <div style="margin-top:14px">
+      <div class="rbar-row"><div class="lab">Nessuna motivazione indicata</div><div class="rbar-track"><div class="rbar-fill" style="width:39.5%;background:var(--muted)"></div></div><div class="rbar-val">39,5%</div></div>
+      <div class="rbar-row"><div class="lab">Non sapeva fosse un abbonamento / voleva un solo acquisto</div><div class="rbar-track"><div class="rbar-fill" style="width:20.9%;background:var(--n)"></div></div><div class="rbar-val">20,9%</div></div>
+      <div class="rbar-row"><div class="lab">Il prodotto non ha funzionato</div><div class="rbar-track"><div class="rbar-fill" style="width:16.3%;background:var(--n)"></div></div><div class="rbar-val">16,3%</div></div>
+      <div class="rbar-row"><div class="lab">Troppo caro / non se lo pu&ograve; permettere</div><div class="rbar-track"><div class="rbar-fill" style="width:7.0%;background:var(--n)"></div></div><div class="rbar-val">7,0%</div></div>
+      <div class="rbar-row"><div class="lab">Vuole provarlo prima / ha gi&agrave; scorta</div><div class="rbar-track"><div class="rbar-fill" style="width:7.0%;background:var(--n)"></div></div><div class="rbar-val">7,0%</div></div>
+      <div class="rbar-row"><div class="lab">Non pi&ugrave; interessato / spedizioni indesiderate</div><div class="rbar-track"><div class="rbar-fill" style="width:4.7%;background:var(--n)"></div></div><div class="rbar-val">4,7%</div></div>
+      <div class="rbar-row"><div class="lab">Cane deceduto / motivi di salute</div><div class="rbar-track"><div class="rbar-fill" style="width:2.3%;background:var(--n)"></div></div><div class="rbar-val">2,3%</div></div>
+      <div class="rbar-row"><div class="lab">Non ricevuto / problema di spedizione</div><div class="rbar-track"><div class="rbar-fill" style="width:2.3%;background:var(--n)"></div></div><div class="rbar-val">2,3%</div></div>
+    </div>
+  </div>
+
+  <div class="grid cb-grid">
+    <div class="card">
+      <h3 style="margin-bottom:4px">Addebiti non autorizzati / non riconosciuti</h3>
+      <p class="chart-sub" style="line-height:1.7;margin-top:8px">~159 email (8,0%). Circa <b style="color:var(--warn)">63</b> sono alert automatici di dispute/frode (Chargeblast) &mdash; cio&egrave; chargeback gi&agrave; segnalati. Il resto sono clienti che contestano un addebito: &laquo;non ho autorizzato il ricorrente&raquo;, &laquo;addebito doppio o troppo alto&raquo;, &laquo;non ho mai ordinato&raquo;, &laquo;apro contestazione in banca&raquo;.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Resi e rimborsi &mdash; motivi</h3>
+      <p class="chart-sub" style="line-height:1.7;margin-top:8px">~152 email (7,6%). Motivi ricorrenti: il <b>prodotto non ha funzionato</b>, prodotto <b>danneggiato o difettoso</b>, ripensamento, ordine non voluto. Spesso la richiesta di reso &egrave; abbinata a un annullamento.</p>
+    </div>
+  </div>
+
+  <p class="note"><b>Metodologia.</b> Analisi di tutte le <b>1.999</b> email/ticket del reparto Nuumipet Support create dal 04/07 all'08/08/2026. Il tema &egrave; assegnato dall'oggetto quando &egrave; esplicito; per la quota maggioritaria di email il cui oggetto non rivela l'intento (risposte al promemoria di rinnovo, &laquo;(No Subject)&raquo;, oggetti generici) il tema &egrave; <b>stimato</b> leggendo un campione di 60 email. I conteggi della parte stimata sono quindi indicativi; le percentuali delle motivazioni si basano sul campione letto. Uno stesso cliente pu&ograve; toccare pi&ugrave; temi (es. annullamento + rimborso): qui &egrave; contato una sola volta sul tema principale. Snapshot statico dell'08/08/2026 &mdash; non si aggiorna automaticamente.</p>
 </div>
 <div class="tip" id="tip"></div>
 
