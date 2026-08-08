@@ -1,20 +1,34 @@
 #!/usr/bin/env python3
 # Aggiorna data.json per il dipartimento Nuumipet Support (Zoho Desk):
-#  - ticket CHIUSI OGGI per agente (Mavreen, Nicole) e non assegnati
+#  - ticket CHIUSI per giorno e per agente (Mavreen, Nicole) e non assegnati
 #  - backlog APERTO ORA (stato Open + On Hold) per agente e non assegnati
+#
+# FUSO ORARIO PER OPERATORE (il "giorno" di un ticket = giorno di chiusura nel
+# fuso di chi lo lavora):
+#   - Mavreen  -> Asia/Manila (Filippine, UTC+8)
+#   - Nicole / non assegnati / altri -> Europe/Rome (Italia)
+#
+# Ad ogni esecuzione ricalcola in modo "self-healing" gli ultimi LOOKBACK_DAYS
+# giorni (default 4): i conteggi recenti si correggono da soli se un ticket
+# viene riaperto/chiuso di nuovo. Per riempire un buco storico (backfill) basta
+# lanciare il workflow a mano passando lookback_days piu' grande.
+#
 # Eseguito da GitHub Actions. Secret richiesti: ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN.
 import json, os, urllib.request, urllib.parse, urllib.error
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-ORG_ID  = "20116101567"
-DEPT_ID = "266671000000007061"
-MAVREEN = "266671000000533350"
-NICOLE  = "266671000000092001"
-TZ      = ZoneInfo("Europe/Brussels")
-UTC     = ZoneInfo("UTC")
-ACCOUNTS= "https://accounts.zoho.eu"
-DESK    = "https://desk.zoho.eu/api/v1"
+ORG_ID   = "20116101567"
+DEPT_ID  = "266671000000007061"
+MAVREEN  = "266671000000533350"
+NICOLE   = "266671000000092001"
+TZ_LOCAL   = ZoneInfo("Europe/Rome")      # Nicole, non assegnati, "giorno operativo"
+TZ_MAVREEN = ZoneInfo("Asia/Manila")      # Mavreen (Filippine, UTC+8)
+UTC        = ZoneInfo("UTC")
+ACCOUNTS   = "https://accounts.zoho.eu"
+DESK       = "https://desk.zoho.eu/api/v1"
+LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "4"))
+
 
 def get_token():
     data = urllib.parse.urlencode({
@@ -30,6 +44,7 @@ def get_token():
         raise SystemExit("Errore OAuth Zoho: " + json.dumps(j))
     return j["access_token"]
 
+
 def zoho_get(path, params, token):
     url = DESK + path + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={
@@ -43,14 +58,16 @@ def zoho_get(path, params, token):
         raise
     return json.loads(raw) if raw.strip() else {"data": []}
 
+
 def iso(dt):
     return dt.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
 
 def paged_search(params, token):
     """Ritorna un dict id->ticket, paginando la search API."""
     out = {}
     frm = 0
-    for _ in range(80):
+    for _ in range(20):
         p = dict(params); p["limit"] = "100"; p["from"] = str(frm)
         j = zoho_get("/tickets/search", p, token)
         batch = j.get("data", []) if isinstance(j, dict) else []
@@ -63,25 +80,61 @@ def paged_search(params, token):
         frm += 100
     return out
 
-def closed_today(token, today):
-    start = datetime(today.year, today.month, today.day, 0, 0, 0, tzinfo=TZ)
-    rng = iso(start) + "," + iso(datetime.now(TZ))
-    tickets = paged_search({"departmentId": DEPT_ID, "status": "Closed",
-                            "modifiedTimeRange": rng, "sortBy": "-modifiedTime"}, token)
-    mc = nc = uc = 0
-    for t in tickets.values():
+
+def fetch_closed(token, start_utc, end_utc):
+    """Tutti i ticket Closed con modifiedTime in [start,end], a blocchi di 2 giorni
+    (finestre piccole = niente limiti di paginazione, anche su backfill lunghi)."""
+    out = {}
+    step = timedelta(days=2)
+    a = start_utc
+    while a < end_utc:
+        b = min(a + step, end_utc)
+        rng = iso(a) + "," + iso(b)
+        out.update(paged_search({"departmentId": DEPT_ID, "status": "Closed",
+                                 "modifiedTimeRange": rng, "sortBy": "-modifiedTime"}, token))
+        a = b
+    return out
+
+
+def agent_tz(assignee_id):
+    return TZ_MAVREEN if assignee_id == MAVREEN else TZ_LOCAL
+
+
+def bucket_tickets(tickets, target_dates):
+    """tickets: iterable di dict ticket. Ritorna {date: [mc, nc, uc]} per le date in target_dates,
+    assegnando ogni ticket al giorno di chiusura NEL FUSO del suo operatore."""
+    tset = set(target_dates)
+    buckets = {d: [0, 0, 0] for d in target_dates}
+    for t in tickets:
         ct = t.get("closedTime")
         if not ct:
             continue
-        cdt = datetime.strptime(ct[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=UTC).astimezone(TZ)
-        if cdt.date() != today:
-            continue
+        cutc = datetime.strptime(ct[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=UTC)
         a = t.get("assigneeId")
-        if a == MAVREEN:  mc += 1
-        elif a == NICOLE: nc += 1
-        elif a is None:   uc += 1
-        else:             uc += 1
-    return mc, nc, uc
+        ld = cutc.astimezone(agent_tz(a)).date()
+        if ld not in tset:
+            continue
+        if a == MAVREEN:
+            buckets[ld][0] += 1
+        elif a == NICOLE:
+            buckets[ld][1] += 1
+        else:
+            buckets[ld][2] += 1
+    return buckets
+
+
+def compute_days(token, now_local):
+    today = now_local.date()
+    targets = [today - timedelta(days=i) for i in range(LOOKBACK_DAYS)]
+    oldest = min(targets)
+    # inizio finestra: mezzanotte locale del giorno precedente al piu' vecchio target
+    # (copre con margine anche il giorno di Manila, che e' avanti rispetto a Roma)
+    start_local = datetime(oldest.year, oldest.month, oldest.day, tzinfo=TZ_LOCAL) - timedelta(days=1)
+    start_utc = start_local.astimezone(UTC)
+    end_utc = datetime.now(UTC)
+    tickets = fetch_closed(token, start_utc, end_utc)
+    return bucket_tickets(tickets.values(), targets)
+
 
 def open_backlog(token):
     tickets = {}
@@ -92,38 +145,45 @@ def open_backlog(token):
         a = t.get("assigneeId")
         if a == MAVREEN:  m += 1
         elif a == NICOLE: n += 1
-        elif a is None:   u += 1
+        else:             u += 1
     return {"m": m, "n": n, "u": u}
+
 
 def main():
     token = get_token()
-    now   = datetime.now(TZ)
-    today = now.date()
+    now = datetime.now(TZ_LOCAL)
 
-    mc, nc, uc = closed_today(token, today)
-    tc = mc + nc + uc
+    buckets = compute_days(token, now)
     op = open_backlog(token)
 
-    dstr = today.strftime("%d/%m")
     with open("data.json", "r", encoding="utf-8") as f:
         doc = json.load(f)
     days = doc.get("days", [])
     for d in days:
         d.pop("partial", None)
-    entry = {"d": dstr, "mc": mc, "nc": nc, "uc": uc, "tc": tc}
-    for i, d in enumerate(days):
-        if d.get("d") == dstr:
-            days[i] = entry
-            break
-    else:
-        days.append(entry)
+    by_label = {d.get("d"): d for d in days}
+
+    for dt in sorted(buckets):
+        mc, nc, uc = buckets[dt]
+        label = dt.strftime("%d/%m")
+        entry = {"d": label, "mc": mc, "nc": nc, "uc": uc, "tc": mc + nc + uc}
+        if label in by_label:
+            by_label[label].update(entry)          # aggiorna sul posto (ordine invariato)
+        else:
+            days.append(entry)                      # date nuove: sempre le piu' recenti
+            by_label[label] = entry
+
     doc["days"]    = days
     doc["open"]    = op
     doc["updated"] = now.strftime("%d/%m/%Y %H:%M")
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    print(f"OK {dstr}: chiusi M={mc} N={nc} NonAss={uc} Tot={tc} | aperti M={op['m']} N={op['n']} NonAss={op['u']}")
+
+    tot = sum(mc + nc + uc for mc, nc, uc in buckets.values())
+    print(f"OK lookback={LOOKBACK_DAYS} giorni ricalcolati={len(buckets)} chiusi_totali={tot} "
+          f"| aperti M={op['m']} N={op['n']} NonAss={op['u']}")
+
 
 if __name__ == "__main__":
     main()
