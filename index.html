@@ -177,7 +177,7 @@
 
   <div class="card table-card">
     <button class="collapse-hd" id="histToggle" aria-expanded="false" aria-controls="histBody">
-      <span>Storico giornaliero — ticket chiusi<span class="cnt-tag" id="histCount"></span></span>
+      <span>Storico <span id="histGran">giornaliero</span> — ticket chiusi<span class="cnt-tag" id="histCount"></span></span>
       <span class="chev">▸</span>
     </button>
     <div class="collapse-body" id="histBody" hidden>
@@ -345,13 +345,16 @@ function renderAll(){
   document.getElementById('barChart').innerHTML='';barChart();
   totBars();
 
-  document.querySelector('#histTable tbody').innerHTML=VIEW.map((r)=>`
-    <tr class="${r.d===last.d?'today':''}">
-      <td>${r.d}</td>
+  const hrows=histRows();
+  document.querySelector('#histTable tbody').innerHTML=hrows.map((r)=>`
+    <tr class="${r.today?'today':''}">
+      <td>${r.lab}</td>
       <td class="cm gsep">${r.mc}</td><td class="cn gsep">${r.nc}</td><td class="cu gsep">${r.uc}</td><td class="tot gsep">${r.tc}</td>
     </tr>`).join('');
-  document.getElementById('histCount').textContent='· '+VIEW.length+' giorni';
-  document.getElementById('note').innerHTML=`<b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno indicato (fuso Europe/Brussels). «Aperti da gestire» = ticket non ancora chiusi in questo momento (stato Open + On Hold), snapshot corrente. Totale chiusi dal 03/07: <b>${cum.toLocaleString('it-IT')}</b>.`;
+  const _unit=TGRAN==='day'?'giorni':(TGRAN==='week'?'settimane':'mesi');
+  document.getElementById('histGran').textContent=TGRAN==='day'?'giornaliero':(TGRAN==='week'?'settimanale':'mensile');
+  document.getElementById('histCount').textContent='· '+hrows.length+' '+_unit;
+  document.getElementById('note').innerHTML=`<b>Metodologia.</b> «Chiusi» = ticket con data di chiusura nel giorno indicato, calcolata nel <b>fuso di ogni operatore</b> (Mavreen: Filippine · Asia/Manila; Nicole e non assegnati: Italia · Europe/Rome). Vista <b>${TGRAN==='day'?'giornaliera':(TGRAN==='week'?'settimanale':'mensile')}</b>. «Aperti da gestire» = ticket non ancora chiusi in questo momento (stato Open + On Hold), snapshot corrente. Totale chiusi dal 03/07: <b>${cum.toLocaleString('it-IT')}</b>.`;
 }
 
 function sparkline(key,color){
@@ -367,6 +370,16 @@ function aggView(){
   VIEW.forEach(r=>{const dd=r.d.slice(0,2),mm=r.d.slice(3,5);let key,lab;
     if(TGRAN==='month'){key=mm;lab=MONM[mm]||mm;}
     else{const y=curYear()||'2026';const dt=new Date(Date.UTC(+y,+mm-1,+dd));const wd=(dt.getUTCDay()+6)%7;dt.setUTCDate(dt.getUTCDate()-wd);const iso=dt.toISOString().slice(0,10);key=iso;lab=iso.slice(8,10)+'/'+iso.slice(5,7);}
+    const o=map[key]||(map[key]={lab,mc:0,nc:0,uc:0,tc:0});o.mc+=r.mc;o.nc+=r.nc;o.uc+=r.uc;o.tc+=r.tc;});
+  return Object.keys(map).sort().map(k=>map[k]);
+}
+function histRows(){
+  const last=DATA[DATA.length-1];
+  if(TGRAN==='day') return VIEW.map(r=>({lab:r.d,mc:r.mc,nc:r.nc,uc:r.uc,tc:r.tc,today:r.d===last.d}));
+  const map={};
+  VIEW.forEach(r=>{const dd=r.d.slice(0,2),mm=r.d.slice(3,5);let key,lab;
+    if(TGRAN==='month'){key=mm;lab=(MONTHS[mm]||mm);}
+    else{const y=curYear()||'2026';const dt=new Date(Date.UTC(+y,+mm-1,+dd));const wd=(dt.getUTCDay()+6)%7;dt.setUTCDate(dt.getUTCDate()-wd);const e=new Date(dt);e.setUTCDate(e.getUTCDate()+6);const f=x=>String(x.getUTCDate()).padStart(2,'0')+'/'+String(x.getUTCMonth()+1).padStart(2,'0');key=dt.toISOString().slice(0,10);lab=f(dt)+' – '+f(e);}
     const o=map[key]||(map[key]={lab,mc:0,nc:0,uc:0,tc:0});o.mc+=r.mc;o.nc+=r.nc;o.uc+=r.uc;o.tc+=r.tc;});
   return Object.keys(map).sort().map(k=>map[k]);
 }
@@ -584,7 +597,7 @@ tb.addEventListener('click',()=>{const light=document.documentElement.getAttribu
 document.getElementById('monthSel').addEventListener('change',e=>{FILTER=e.target.value;renderAll();});
 const histToggle=document.getElementById('histToggle');
 histToggle.addEventListener('click',()=>{const b=document.getElementById('histBody');const open=histToggle.getAttribute('aria-expanded')==='true';histToggle.setAttribute('aria-expanded',String(!open));b.hidden=open;});
-document.getElementById('tgran').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;TGRAN=b.dataset.t;document.querySelectorAll('#tgran button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('barChart').innerHTML='';barChart();});
+document.getElementById('tgran').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;TGRAN=b.dataset.t;document.querySelectorAll('#tgran button').forEach(x=>x.classList.toggle('on',x===b));renderAll();});
 document.getElementById('ctgran').addEventListener('click',e=>{const b=e.target.closest('button[data-c]');if(!b)return;CTGRAN=b.dataset.c;document.querySelectorAll('#ctgran button').forEach(x=>x.classList.toggle('on',x===b));renderPctSeries();});
 
 /* Ponte live (Cloudflare Worker): interroga Zoho in tempo reale al click su Aggiorna */
