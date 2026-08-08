@@ -125,6 +125,20 @@
   .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:3px}
   .seg button{background:none;border:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:600;padding:6px 15px;border-radius:999px;cursor:pointer}
   .seg button.on{background:var(--m);color:#fff}
+  /* --- App multi-pagina --- */
+  .appnav{position:sticky;top:0;z-index:15;display:flex;flex-wrap:wrap;gap:6px;background:var(--plane);padding:10px 0 12px;margin:0 0 10px;border-bottom:1px solid var(--border)}
+  .appnav button{cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--ink-2);font-family:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:999px}
+  .appnav button.on{background:var(--m);color:#fff;border-color:var(--m)}
+  .appnav button:hover{color:var(--ink)}
+  .page{display:none}
+  .page.on{display:block}
+  .pfbar{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin:0 0 16px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  .pfbar .flabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .pfbar input[type=date]{background:var(--surface-2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:inherit}
+  .pfbar .pfinfo{font-size:12px;color:var(--muted);margin-left:auto}
+  .pfbar .lnk{font-size:12px;color:var(--m);cursor:pointer;font-weight:600;background:none;border:none;padding:0}
+  .home-title{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;display:flex;align-items:center;gap:10px}
+  .home-title button{font-size:11px}
 </style>
 </head>
 <body>
@@ -142,12 +156,20 @@
     </div>
   </header>
 
+  <nav class="appnav" id="appnav"></nav>
+
+  <div class="page" id="pg-home"><section id="homeBody"></section></div>
+
+  <div class="page on" id="pg-ticket">
   <section class="grid kpis" id="kpis"></section>
   <section class="grid agents" id="agents"></section>
 
   <div class="filterbar">
     <span class="flabel">Periodo</span>
     <select id="monthSel" aria-label="Filtro per mese"></select>
+    <span class="flabel">Dal</span><input type="date" id="tkFrom" style="background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:13px;font-family:inherit">
+    <span class="flabel">al</span><input type="date" id="tkTo" style="background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:13px;font-family:inherit">
+    <button type="button" class="lnk" id="tkClear" style="font-size:12px;color:var(--m);background:none;border:none;cursor:pointer;font-weight:600">azzera</button>
     <span id="periodInfo" class="pinfo"></span>
     <span class="flabel" style="margin-left:auto">Vista</span>
     <div class="seg" id="tgran">
@@ -197,6 +219,10 @@
     </div>
   </div>
 
+  </div>
+
+  <div class="page" id="pg-finance">
+  <div class="pfbar" id="pf-finance"></div>
   <div class="cb-head">
     <div>
       <h2>Finanza — Numipet</h2>
@@ -205,7 +231,16 @@
   </div>
   <section class="grid kpis" id="finBody"></section>
   <p class="note" id="finNote"></p>
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:4px">Fatturato per periodo</h3>
+    <p class="chart-sub">incassato Numipet (CheckoutChamp, live)</p>
+    <div id="finTrend" style="margin-top:12px"></div>
+  </div>
 
+  </div>
+
+  <div class="page" id="pg-subs">
+  <div class="pfbar" id="pf-subs"></div>
   <div class="cb-head">
     <div>
       <h2>Rinnovi in arrivo — Numipet</h2>
@@ -224,6 +259,10 @@
   </div>
   <p class="note" id="rebNote"></p>
 
+  </div>
+
+  <div class="page" id="pg-contest">
+  <div class="pfbar" id="pf-contest"></div>
   <div class="cb-head">
     <div>
       <h2>Contestazioni USA</h2>
@@ -279,6 +318,10 @@
 
   <p class="note" id="cbNote"></p>
 
+  </div>
+
+  <div class="page" id="pg-email">
+  <div class="pfbar" id="pf-email"></div>
   <div class="cb-head">
     <div>
       <h2>Analisi email clienti &mdash; temi</h2>
@@ -286,23 +329,18 @@
     </div>
   </div>
 
-  <section class="grid kpis">
-    <div class="card kpi"><h3>Email analizzate</h3><div class="big">1.999</div><div class="sub">04/07 &rarr; 08/08/2026</div></div>
-    <div class="card kpi"><h3>Annullamento abbonamento</h3><div class="big" style="color:var(--n)">68,9%</div><div class="sub">~1.377 email</div></div>
-    <div class="card kpi"><h3>Addebito non autorizzato</h3><div class="big" style="color:var(--warn)">8,0%</div><div class="sub">~159 email &middot; ~63 alert dispute</div></div>
-    <div class="card kpi"><h3>Richieste di reso / rimborso</h3><div class="big" style="color:var(--m)">7,6%</div><div class="sub">~152 email</div></div>
-  </section>
+  <section class="grid kpis" id="emailKpis"></section>
 
   <div class="card">
     <h3 style="margin-bottom:4px">Temi delle email</h3>
-    <p class="chart-sub">quota sul totale &middot; numero stimato di email</p>
-    <div style="margin-top:14px">
-      <div class="rbar-row"><div class="lab">Annullamento abbonamento</div><div class="rbar-track"><div class="rbar-fill" style="width:68.9%;background:var(--n)"></div></div><div class="rbar-val"><span class="cnt">1.377</span>68,9%</div></div>
-      <div class="rbar-row"><div class="lab">Altro (spam, interni, domande)</div><div class="rbar-track"><div class="rbar-fill" style="width:13.0%;background:var(--muted)"></div></div><div class="rbar-val"><span class="cnt">259</span>13,0%</div></div>
-      <div class="rbar-row"><div class="lab">Addebito non autorizzato / non riconosciuto</div><div class="rbar-track"><div class="rbar-fill" style="width:8.0%;background:var(--warn)"></div></div><div class="rbar-val"><span class="cnt">159</span>8,0%</div></div>
-      <div class="rbar-row"><div class="lab">Richieste di reso / rimborso</div><div class="rbar-track"><div class="rbar-fill" style="width:7.6%;background:var(--m)"></div></div><div class="rbar-val"><span class="cnt">152</span>7,6%</div></div>
-      <div class="rbar-row"><div class="lab">Spedizione / consegna (dov'&egrave; il mio ordine)</div><div class="rbar-track"><div class="rbar-fill" style="width:2.6%;background:var(--u)"></div></div><div class="rbar-val"><span class="cnt">52</span>2,6%</div></div>
-    </div>
+    <p class="chart-sub" id="emailThemesSub">quota sul periodo &middot; numero di email</p>
+    <div id="emailThemes" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:4px">Andamento email nel tempo</h3>
+    <p class="chart-sub" id="emailTrendSub">volume per periodo</p>
+    <div id="emailTrend" style="margin-top:12px"></div>
   </div>
 
   <div class="card">
@@ -331,7 +369,8 @@
     </div>
   </div>
 
-  <p class="note"><b>Metodologia.</b> Analisi di tutte le <b>1.999</b> email/ticket del reparto Nuumipet Support create dal 04/07 all'08/08/2026. Il tema &egrave; assegnato dall'oggetto quando &egrave; esplicito; per la quota maggioritaria di email il cui oggetto non rivela l'intento (risposte al promemoria di rinnovo, &laquo;(No Subject)&raquo;, oggetti generici) il tema &egrave; <b>stimato</b> leggendo un campione di 60 email. I conteggi della parte stimata sono quindi indicativi; le percentuali delle motivazioni si basano sul campione letto. Uno stesso cliente pu&ograve; toccare pi&ugrave; temi (es. annullamento + rimborso): qui &egrave; contato una sola volta sul tema principale. Snapshot statico dell'08/08/2026 &mdash; non si aggiorna automaticamente.</p>
+  <p class="note"><b>Metodologia.</b> Analisi di tutte le <b>1.999</b> email/ticket del reparto Nuumipet Support create dal 04/07 all'08/08/2026. Il tema &egrave; assegnato dall'oggetto quando &egrave; esplicito; per la quota maggioritaria di email il cui oggetto non rivela l'intento (risposte al promemoria di rinnovo, &laquo;(No Subject)&raquo;, oggetti generici) il tema &egrave; <b>stimato</b> leggendo un campione di 60 email. I conteggi della parte stimata sono quindi indicativi; le percentuali delle motivazioni si basano sul campione letto. Uno stesso cliente pu&ograve; toccare pi&ugrave; temi (es. annullamento + rimborso): qui &egrave; contato una sola volta sul tema principale. Ogni email &egrave; datata e classificata per tema (esatta per gli oggetti espliciti, modellata per quelli generici con le proporzioni del campione letto), quindi la pagina &egrave; filtrabile per data. Le percentuali delle motivazioni si basano sul campione letto.</p>
+  </div>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -681,6 +720,151 @@ document.getElementById('refreshBtn').addEventListener('click',loadData);
 renderContest();
 renderRebills();
 loadData();
+
+/* ================= APP MULTI-PAGINA ================= */
+const EMAILDAY=[{"d":"03/07","CA":1,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"04/07","CA":23,"CH":2,"RE":0,"SH":0,"OT":3},{"d":"05/07","CA":3,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"07/07","CA":0,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"09/07","CA":2,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"10/07","CA":1,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"11/07","CA":2,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"13/07","CA":0,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"14/07","CA":4,"CH":0,"RE":0,"SH":0,"OT":2},{"d":"15/07","CA":75,"CH":2,"RE":6,"SH":1,"OT":21},{"d":"16/07","CA":60,"CH":9,"RE":5,"SH":4,"OT":16},{"d":"17/07","CA":48,"CH":3,"RE":4,"SH":2,"OT":7},{"d":"18/07","CA":34,"CH":4,"RE":5,"SH":0,"OT":10},{"d":"19/07","CA":59,"CH":3,"RE":2,"SH":0,"OT":7},{"d":"20/07","CA":120,"CH":15,"RE":9,"SH":5,"OT":10},{"d":"21/07","CA":137,"CH":5,"RE":11,"SH":3,"OT":16},{"d":"22/07","CA":103,"CH":9,"RE":7,"SH":1,"OT":19},{"d":"23/07","CA":74,"CH":11,"RE":10,"SH":1,"OT":10},{"d":"24/07","CA":43,"CH":4,"RE":10,"SH":4,"OT":10},{"d":"25/07","CA":47,"CH":8,"RE":4,"SH":4,"OT":8},{"d":"26/07","CA":34,"CH":4,"RE":3,"SH":4,"OT":9},{"d":"27/07","CA":42,"CH":6,"RE":3,"SH":3,"OT":12},{"d":"28/07","CA":44,"CH":6,"RE":6,"SH":2,"OT":5},{"d":"29/07","CA":37,"CH":7,"RE":10,"SH":4,"OT":5},{"d":"30/07","CA":56,"CH":7,"RE":5,"SH":4,"OT":9},{"d":"31/07","CA":38,"CH":4,"RE":2,"SH":2,"OT":5},{"d":"01/08","CA":32,"CH":3,"RE":10,"SH":0,"OT":5},{"d":"02/08","CA":52,"CH":0,"RE":1,"SH":3,"OT":7},{"d":"03/08","CA":37,"CH":3,"RE":4,"SH":3,"OT":7},{"d":"04/08","CA":43,"CH":3,"RE":3,"SH":1,"OT":10},{"d":"05/08","CA":47,"CH":5,"RE":9,"SH":1,"OT":10},{"d":"06/08","CA":53,"CH":11,"RE":9,"SH":2,"OT":10},{"d":"07/08","CA":42,"CH":7,"RE":3,"SH":2,"OT":7},{"d":"08/08","CA":18,"CH":2,"RE":0,"SH":0,"OT":5}];
+const EMTHEME=[{k:'CA',lab:'Annullamento abbonamento',col:'var(--n)'},{k:'CH',lab:'Addebito non autorizzato / non riconosciuto',col:'var(--warn)'},{k:'RE',lab:'Richieste di reso / rimborso',col:'var(--m)'},{k:'SH',lab:'Spedizione / consegna',col:'var(--u)'},{k:'OT',lab:'Altro (spam, interni, domande)',col:'var(--muted)'}];
+function pit(x){return (Math.round(x*10)/10).toString().replace('.',',')+'%';}
+function isoLab(iso){return iso.slice(8,10)+'/'+iso.slice(5,7);}
+function isoLabF(iso){return iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4);}
+function wkStart(iso){const p=iso.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
+function inR(iso,f,t){return (!f||iso>=f)&&(!t||iso<=t);}
+function granLab(g){return g==='day'?'giorno':(g==='week'?'settimana':'mese');}
+function ddmmToIso(x){return '2026-'+x.slice(3,5)+'-'+x.slice(0,2);}
+function aggDaily(rows,gran,f,t,ms){const inr=rows.filter(r=>inR(r.iso,f,t));
+  if(gran==='day')return inr.map(r=>{const o={key:r.iso,lab:isoLab(r.iso)};ms.forEach(m=>o[m]=r[m]||0);return o;});
+  const map={};inr.forEach(r=>{let key,lab;if(gran==='month'){key=r.iso.slice(0,7);lab=(MONM[key.slice(5,7)]||key);}else{key=wkStart(r.iso);lab=isoLab(key);}const o=map[key]||(map[key]={key,lab});ms.forEach(m=>o[m]=(o[m]||0)+(r[m]||0));});
+  return Object.keys(map).sort().map(k=>map[k]);}
+function stackChart(elId,rows,series){const el=document.getElementById(elId);if(!el)return;el.innerHTML='';
+  if(!rows.length){el.innerHTML='<p class="chart-sub">Nessun dato nel periodo selezionato.</p>';return;}
+  const W=620,H=300,pl=34,pr=8,pt=14,pb=26,plotW=W-pl-pr,plotH=H-pt-pb,n=Math.max(1,rows.length);
+  const tot=r=>series.reduce((s,x)=>s+(r[x.k]||0),0);
+  const max=niceMax(Math.max(...rows.map(tot),1)),gap=plotW/n,bw=Math.min(30,gap*0.66);
+  const y=v=>pt+plotH-(v/max)*plotH;
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);let g='';
+  for(let t=0;t<=max;t+=max/4){const yy=y(t).toFixed(1);g+='<line class="gl" x1="'+pl+'" y1="'+yy+'" x2="'+(W-pr)+'" y2="'+yy+'"/><text class="axl tab" x="'+(pl-6)+'" y="'+(+yy+3).toFixed(1)+'" text-anchor="end">'+Math.round(t)+'</text>';}
+  const se=n<=16?1:Math.ceil(n/16);
+  rows.forEach((row,i)=>{const cx=pl+gap*i+gap/2,x=cx-bw/2;let acc=0;
+    series.forEach(s=>{const v=row[s.k]||0;if(v>0){const yT=y(acc+v),yB=y(acc),hh=Math.max(1,yB-yT-1);g+='<rect x="'+x.toFixed(1)+'" y="'+yT.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hh.toFixed(1)+'" rx="1.5" fill="'+s.col+'"/>';acc+=v;}});
+    if(i%se===0||i===n-1)g+='<text class="axl tab" x="'+cx.toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+row.lab+'</text>';});
+  svg.innerHTML=g;el.appendChild(svg);}
+function kpiCard(lab,big,sub,col){return '<div class="card kpi"><h3>'+lab+'</h3><div class="big" style="font-size:clamp(24px,3.4vw,40px)'+(col?';color:'+col:'')+'">'+big+'</div><div class="sub">'+(sub||'')+'</div></div>';}
+function pfInfo(elId,txt){const el=document.getElementById(elId);if(!el)return;const i=el.querySelector('[data-info]');if(i)i.textContent=txt;}
+function buildPF(elId,state,onCh,opt){opt=opt||{};const el=document.getElementById(elId);if(!el)return;
+  let seg='';
+  if(!opt.noGran){seg='<span class="flabel">Vista</span><div class="seg" data-seg>'+[['day','Giorno'],['week','Settimana'],['month','Mese']].map(g=>'<button type="button" data-g="'+g[0]+'"'+(state.gran===g[0]?' class="on"':'')+'>'+g[1]+'</button>').join('')+'</div>';}
+  el.innerHTML=seg+'<span class="flabel">Dal</span><input type="date" data-from><span class="flabel">al</span><input type="date" data-to><button type="button" class="lnk" data-clear>azzera</button><span class="pfinfo" data-info></span>';
+  const fi=el.querySelector('[data-from]'),ti=el.querySelector('[data-to]');
+  if(state.from)fi.value=state.from;if(state.to)ti.value=state.to;
+  el.addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(b){state.gran=b.dataset.g;el.querySelectorAll('[data-g]').forEach(x=>x.classList.toggle('on',x===b));onCh();return;}
+    if(e.target.closest('[data-clear]')){state.from='';state.to='';fi.value='';ti.value='';onCh();}});
+  el.addEventListener('change',e=>{if(e.target===fi){state.from=fi.value;onCh();}else if(e.target===ti){state.to=ti.value;onCh();}});}
+function rngTxt(s){return (s.from||s.to)?((s.from?isoLabF(s.from):'inizio')+' → '+(s.to?isoLabF(s.to):'oggi')):'tutto il periodo';}
+
+/* EMAIL */
+const EMAILF={gran:'day',from:'',to:''};
+function emailRows(){return EMAILDAY.map(r=>({iso:ddmmToIso(r.d),CA:r.CA,CH:r.CH,RE:r.RE,SH:r.SH,OT:r.OT}));}
+function renderEmail(){const rows=emailRows();const inr=rows.filter(r=>inR(r.iso,EMAILF.from,EMAILF.to));
+  const tot={CA:0,CH:0,RE:0,SH:0,OT:0};inr.forEach(r=>EMTHEME.forEach(t=>tot[t.k]+=r[t.k]));
+  const N=EMTHEME.reduce((s,t)=>s+tot[t.k],0),pc=v=>N?v/N*100:0;
+  document.getElementById('emailKpis').innerHTML=
+    kpiCard('Email nel periodo',N.toLocaleString('it-IT'),(EMAILF.from||EMAILF.to)?'periodo filtrato':'04/07 → 08/08')+
+    kpiCard('Annullamento',pit(pc(tot.CA)),tot.CA.toLocaleString('it-IT')+' email','var(--n)')+
+    kpiCard('Addebito non autoriz.',pit(pc(tot.CH)),tot.CH.toLocaleString('it-IT')+' email','var(--warn)')+
+    kpiCard('Reso / rimborso',pit(pc(tot.RE)),tot.RE.toLocaleString('it-IT')+' email','var(--m)');
+  const maxT=Math.max(...EMTHEME.map(t=>tot[t.k]),1);
+  document.getElementById('emailThemes').innerHTML=EMTHEME.slice().sort((a,b)=>tot[b.k]-tot[a.k]).map(t=>
+    '<div class="rbar-row"><div class="lab">'+t.lab+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(tot[t.k]/maxT*100).toFixed(1)+'%;background:'+t.col+'"></div></div><div class="rbar-val"><span class="cnt">'+tot[t.k].toLocaleString('it-IT')+'</span>'+pit(pc(tot[t.k]))+'</div></div>').join('');
+  stackChart('emailTrend',aggDaily(rows,EMAILF.gran,EMAILF.from,EMAILF.to,['CA','CH','RE','SH','OT']),EMTHEME);
+  document.getElementById('emailThemesSub').textContent='quota sul periodo · '+N.toLocaleString('it-IT')+' email';
+  document.getElementById('emailTrendSub').textContent='email per '+granLab(EMAILF.gran)+' · impilato per tema';
+  pfInfo('pf-email',rngTxt(EMAILF)+' · '+N.toLocaleString('it-IT')+' email');}
+
+/* CONTESTAZIONI: intervallo date sul grafico % */
+const CONTF={from:'',to:''};
+renderPctSeries=function(){
+  const usa=(CT.usaDaily||[]).filter(x=>inR(x[0],CONTF.from,CONTF.to));let rows=[],note='';
+  if(CTGRAN==='month'){const cont={};usa.forEach(a=>{const m=a[0].slice(0,7);cont[m]=(cont[m]||0)+a[1];});
+    if(!CONTF.from&&!CONTF.to){const ci=CT.contiItaMonthly||{};Object.keys(ci).forEach(mm=>cont['2026-'+mm]=(cont['2026-'+mm]||0)+ci[mm]);}
+    const fat=FATM||{};const ms=[...new Set([...Object.keys(cont),...Object.keys(fat)])].sort().filter(m=>cont[m]||fat[m]).filter(m=>(!CONTF.from||m>=CONTF.from.slice(0,7))&&(!CONTF.to||m<=CONTF.to.slice(0,7)));
+    rows=ms.map(m=>({lab:(MONM[m.slice(5,7)]||m)+' '+m.slice(0,4),c:cont[m]||0,f:fat[m]||0}));}
+  else if(CTGRAN==='week'){const cont={};usa.forEach(a=>{const k=wkStart(a[0]);cont[k]=(cont[k]||0)+a[1];});
+    const fat={};if(FATD)Object.keys(FATD).forEach(d=>{if(inR(d,CONTF.from,CONTF.to)){const k=wkStart(d);fat[k]=(fat[k]||0)+FATD[d];}});
+    rows=Object.keys(cont).sort().map(k=>({lab:'sett. '+isoLab(k),c:cont[k],f:fat[k]||0}));note=' · solo USA';}
+  else{const fat=FATD||{};rows=usa.map(a=>({lab:isoLab(a[0]),c:a[1],f:(fat[a[0]]||0)}));note=' · solo USA';}
+  rows.forEach(r=>r.pct=r.f?r.c/r.f*100:null);const maxP=Math.max(...rows.map(r=>r.pct||0),0.1);
+  document.getElementById('ctMonthly').innerHTML=rows.length?rows.map(r=>{const pv=r.pct==null?'n/d':pit(r.pct);
+    return '<div class="rbar-row"><div class="lab">'+r.lab+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(r.pct?(r.pct/maxP*100).toFixed(1):0)+'%;background:var(--warn)"></div></div><div class="rbar-val">'+pv+' <span class="cnt">'+money(r.c)+'/'+money(r.f)+'</span></div></div>';}).join(''):'<p class="chart-sub">Nessun dato nel periodo.</p>';
+  const fi=document.getElementById('ctFatInfo');if(fi)fi.textContent=(FATLAST?('dati al '+isoLab(FATLAST)):'in caricamento…')+note;
+  pfInfo('pf-contest',rngTxt(CONTF));};
+
+/* ABBONAMENTI */
+const SUBF={gran:'day',from:'',to:''};
+function renderSubsFilter(){const c=document.getElementById('rebByDay');if(!c)return;if(!REB||!REB.byDay)return;
+  const rows=REB.byDay.map(d=>({iso:d.date,amount:d.amount||0,count:d.count||0}));
+  const agg=aggDaily(rows,SUBF.gran,SUBF.from,SUBF.to,['amount','count']);const maxA=Math.max(...agg.map(d=>d.amount),1);const mm=v=>'$ '+Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  c.innerHTML=agg.length?agg.map(d=>'<div class="rbar-row"><div class="lab">'+d.lab+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.amount/maxA*100).toFixed(1)+'%;background:var(--warn)"></div></div><div class="rbar-val">'+mm(d.amount)+' <span class="cnt">'+d.count+' abb.</span></div></div>').join(''):'<p class="chart-sub">Nessun rinnovo nel periodo.</p>';
+  const tA=agg.reduce((s,d)=>s+d.amount,0),tC=agg.reduce((s,d)=>s+d.count,0);pfInfo('pf-subs',rngTxt(SUBF)+' · '+tC+' abb. · '+mm(tA));}
+
+/* FINANZA */
+const FINF={gran:'day',from:'',to:''};
+function renderFinFilter(){const el=document.getElementById('finTrend');if(!el)return;if(!FATD){el.innerHTML='<p class="chart-sub">Caricamento fatturato…</p>';return;}
+  const rows=Object.keys(FATD).sort().map(d=>({iso:d,f:FATD[d]}));const agg=aggDaily(rows,FINF.gran,FINF.from,FINF.to,['f']);
+  const maxF=Math.max(...agg.map(d=>d.f),1);const mm=v=>'$ '+Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  el.innerHTML=agg.length?agg.map(d=>'<div class="rbar-row"><div class="lab">'+d.lab+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.f/maxF*100).toFixed(1)+'%;background:var(--good)"></div></div><div class="rbar-val">'+mm(d.f)+'</div></div>').join(''):'<p class="chart-sub">Nessun dato nel periodo.</p>';
+  const t=agg.reduce((s,d)=>s+d.f,0);pfInfo('pf-finance',rngTxt(FINF)+' · incassato '+mm(t));}
+
+/* RIEPILOGO */
+function renderHome(){const el=document.getElementById('homeBody');if(!el)return;
+  const last=DATA[DATA.length-1]||{tc:0,d:'',mc:0,nc:0,uc:0};const cum=DATA.reduce((s,x)=>s+x.tc,0);const last7=DATA.slice(-7).reduce((s,x)=>s+x.tc,0);
+  const openTot=(OPEN.m||0)+(OPEN.n||0)+(OPEN.u||0);
+  const em={CA:0,CH:0,RE:0,SH:0,OT:0};emailRows().forEach(r=>EMTHEME.forEach(t=>em[t.k]+=r[t.k]));const emN=EMTHEME.reduce((s,t)=>s+em[t.k],0);
+  const rc=(typeof computeRecap==='function')?computeRecap():{n:0,v:0,p:0,a:0};const mmm=v=>'$ '+Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const go=(id,txt)=>'<button class="lnk" onclick="showPage(\''+id+'\')">'+txt+' →</button>';
+  el.innerHTML=
+    '<div class="home-title">Ticket assistenza '+go('ticket','dettaglio')+'</div><section class="grid kpis">'+
+      kpiCard('Chiusi oggi ('+last.d+')',last.tc,'M '+last.mc+' · N '+last.nc+' · NA '+last.uc,'var(--good)')+
+      kpiCard('Aperti da gestire',openTot,'M '+(OPEN.m||0)+' · N '+(OPEN.n||0)+' · NA '+(OPEN.u||0),'var(--warn)')+
+      kpiCard('Chiusi ultimi 7 gg',last7.toLocaleString('it-IT'),'media '+Math.round(last7/7)+'/g')+
+      kpiCard('Chiusi totali',cum.toLocaleString('it-IT'),'dal 03/07')+'</section>'+
+    '<div class="home-title">Analisi email '+go('email','dettaglio')+'</div><section class="grid kpis">'+
+      kpiCard('Email totali',emN.toLocaleString('it-IT'),'04/07 → 08/08')+
+      kpiCard('Annullamenti',pit(emN?em.CA/emN*100:0),em.CA.toLocaleString('it-IT')+' email','var(--n)')+
+      kpiCard('Addebiti non autoriz.',pit(emN?em.CH/emN*100:0),em.CH.toLocaleString('it-IT')+' email','var(--warn)')+
+      kpiCard('Resi / rimborsi',pit(emN?em.RE/emN*100:0),em.RE.toLocaleString('it-IT')+' email','var(--m)')+'</section>'+
+    '<div class="home-title">Rinnovi &amp; contestazioni '+go('subs','rinnovi')+' '+go('contest','contestazioni')+'</div><section class="grid kpis">'+
+      kpiCard('Rinnovi 7 gg',(REB&&REB.n7?(REB.n7.count||0):'—'),(REB&&REB.n7?mmm(REB.n7.amount):'live'))+
+      kpiCard('Rinnovi 30 gg',(REB&&REB.n30?(REB.n30.count||0):'—'),(REB&&REB.n30?mmm(REB.n30.amount):'live'))+
+      kpiCard('Contestazioni 2026',rc.n,'vinte '+rc.v+' · perse '+rc.p+' · aperte '+rc.a)+
+      kpiCard('Incassato mese',(typeof FIN!=='undefined'&&FIN&&FIN.incMese!=null?mmm(FIN.incMese):'—'),'mese in corso (live)')+'</section>';}
+
+/* NAV / ROUTER */
+const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['email','Analisi email']];
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
+  document.querySelectorAll('#appnav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));window.scrollTo(0,0);
+  if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();}
+document.getElementById('appnav').innerHTML=PAGES.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='home'?' class="on"':'')+'>'+p[1]+'</button>').join('');
+document.getElementById('appnav').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)showPage(b.dataset.p);});
+
+/* TICKET: intervallo date */
+let TKFROM='',TKTO='';
+fData=function(){let a=FILTER==='all'?DATA:DATA.filter(x=>x.d.slice(3,5)===FILTER);if(TKFROM||TKTO)a=a.filter(x=>inR(ddmmToIso(x.d),TKFROM,TKTO));return a;};
+document.getElementById('tkFrom').addEventListener('change',e=>{TKFROM=e.target.value;renderAll();});
+document.getElementById('tkTo').addEventListener('change',e=>{TKTO=e.target.value;renderAll();});
+document.getElementById('tkClear').addEventListener('click',()=>{TKFROM='';TKTO='';document.getElementById('tkFrom').value='';document.getElementById('tkTo').value='';renderAll();});
+
+/* barre filtro */
+buildPF('pf-email',EMAILF,renderEmail);
+buildPF('pf-subs',SUBF,renderSubsFilter);
+buildPF('pf-finance',FINF,renderFinFilter);
+buildPF('pf-contest',CONTF,function(){renderPctSeries();},{noGran:true});
+
+/* render + aggancio live */
+renderRebills=(function(o){return function(){o.apply(this,arguments);try{renderSubsFilter();}catch(e){}try{renderHome();}catch(e){}};})(renderRebills);
+renderContest=(function(o){return function(){o.apply(this,arguments);try{renderFinFilter();}catch(e){}};})(renderContest);
+try{renderEmail();}catch(e){}
+try{renderHome();}catch(e){}
+showPage('home');
 </script>
 </body>
 </html>
