@@ -1,0 +1,56 @@
+name: Aggiorna dati ticket (data.json)
+
+on:
+  schedule:
+    # ogni 3 ore (orari in UTC). Ricalcola sempre gli ultimi 4 giorni.
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'Quanti giorni ricalcolare (usa un numero alto, es. 20, per riempire i giorni mancanti / backfill)'
+        required: false
+        default: '4'
+
+# necessario per fare push del data.json aggiornato
+permissions:
+  contents: write
+
+concurrency:
+  group: aggiorna-dati
+  cancel-in-progress: false
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installa tzdata (fusi orari)
+        run: pip install --quiet tzdata
+
+      - name: Aggiorna data.json
+        env:
+          ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
+          LOOKBACK_DAYS:      ${{ github.event.inputs.lookback_days || '4' }}
+        run: python update_data.py
+
+      - name: Commit e push se cambiato
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica a data.json"
+          else
+            git commit -m "dati ticket: aggiornamento $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
