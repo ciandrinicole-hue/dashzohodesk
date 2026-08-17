@@ -14,7 +14,7 @@
 # lanciare il workflow a mano passando lookback_days piu' grande.
 #
 # Eseguito da GitHub Actions. Secret richiesti: ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN.
-import json, os, urllib.request, urllib.parse, urllib.error
+import json, os, re, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -28,6 +28,22 @@ UTC        = ZoneInfo("UTC")
 ACCOUNTS   = "https://accounts.zoho.eu"
 DESK       = "https://desk.zoho.eu/api/v1"
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "4"))
+
+# --- Nuovo vs Follow-up ---
+# Follow-up = risposta (Re:/Fwd:) a una conversazione di ASSISTENZA gia' aperta.
+# Le risposte alle mail automatiche (promemoria rinnovo, spedizione, newsletter,
+# conferme, notifiche rimborso) NON sono follow-up: sono richieste nuove.
+REPLY_RE = re.compile(r'^\s*(re|fwd|fw|aw|r)\s*[:\-]', re.I)
+MKT_RE   = re.compile(r'reminder|shipment is coming|early signs|we received your request|'
+                      r'refund notification|your next calmicollar', re.I)
+
+def is_followup(subject):
+    s = subject or ''
+    if not REPLY_RE.match(s):
+        return False          # non e' una risposta -> nuovo
+    if MKT_RE.search(s):
+        return False          # risposta a mail automatica/marketing -> nuovo
+    return True               # risposta a conversazione di assistenza -> follow-up
 
 
 def get_token():
@@ -104,7 +120,8 @@ def bucket_tickets(tickets, target_dates):
     """tickets: iterable di dict ticket. Ritorna {date: [mc, nc, uc]} per le date in target_dates,
     assegnando ogni ticket al giorno di chiusura NEL FUSO del suo operatore."""
     tset = set(target_dates)
-    buckets = {d: [0, 0, 0] for d in target_dates}
+    # [mc, nc, uc, nw, fu]  (nw=nuovi, fu=follow-up ; nw+fu == mc+nc+uc)
+    buckets = {d: [0, 0, 0, 0, 0] for d in target_dates}
     for t in tickets:
         ct = t.get("closedTime")
         if not ct:
@@ -120,6 +137,10 @@ def bucket_tickets(tickets, target_dates):
             buckets[ld][1] += 1
         else:
             buckets[ld][2] += 1
+        if is_followup(t.get("subject")):
+            buckets[ld][4] += 1
+        else:
+            buckets[ld][3] += 1
     return buckets
 
 
@@ -164,9 +185,9 @@ def main():
     by_label = {d.get("d"): d for d in days}
 
     for dt in sorted(buckets):
-        mc, nc, uc = buckets[dt]
+        mc, nc, uc, nw, fu = buckets[dt]
         label = dt.strftime("%d/%m")
-        entry = {"d": label, "mc": mc, "nc": nc, "uc": uc, "tc": mc + nc + uc}
+        entry = {"d": label, "mc": mc, "nc": nc, "uc": uc, "tc": mc + nc + uc, "nw": nw, "fu": fu}
         if label in by_label:
             by_label[label].update(entry)          # aggiorna sul posto (ordine invariato)
         else:
