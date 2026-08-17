@@ -201,8 +201,10 @@ def main():
         json.dump(doc, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
-    tot = sum(mc + nc + uc for mc, nc, uc in buckets.values())
-    print(f"OK lookback={LOOKBACK_DAYS} giorni ricalcolati={len(buckets)} chiusi_totali={tot} "
+    tot = sum(v[0] + v[1] + v[2] for v in buckets.values())
+    tnw = sum(v[3] for v in buckets.values())
+    tfu = sum(v[4] for v in buckets.values())
+    print(f"OK lookback={LOOKBACK_DAYS} giorni={len(buckets)} chiusi={tot} nuovi={tnw} followup={tfu} "
           f"| aperti M={op['m']} N={op['n']} NonAss={op['u']}")
 
 
