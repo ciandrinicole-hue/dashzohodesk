@@ -383,6 +383,42 @@
   <p class="note"><b>Metodologia.</b> Analisi di tutte le <b>1.999</b> email/ticket del reparto Nuumipet Support create dal 04/07 all'08/08/2026. Il tema &egrave; assegnato dall'oggetto quando &egrave; esplicito; per la quota maggioritaria di email il cui oggetto non rivela l'intento (risposte al promemoria di rinnovo, &laquo;(No Subject)&raquo;, oggetti generici) il tema &egrave; <b>stimato</b> leggendo un campione di 60 email. I conteggi della parte stimata sono quindi indicativi; le percentuali delle motivazioni si basano sul campione letto. Uno stesso cliente pu&ograve; toccare pi&ugrave; temi (es. annullamento + rimborso): qui &egrave; contato una sola volta sul tema principale. Ogni email &egrave; datata e classificata per tema (esatta per gli oggetti espliciti, modellata per quelli generici con le proporzioni del campione letto), quindi la pagina &egrave; filtrabile per data. Le percentuali delle motivazioni si basano sul campione letto.</p>
   </div>
 </div>
+
+<div class="page" id="pg-refund">
+  <div class="pfbar" id="pf-refund"></div>
+  <div class="cb-head">
+    <div>
+      <h2>Rimborsi USA</h2>
+      <p>importi &middot; contestazioni vs normali &middot; per provider e prodotto &middot; fonte foglio &laquo;refund 2026 usa&raquo; &middot; agg. <span id="rfUpd">&mdash;</span></p>
+    </div>
+  </div>
+
+  <section class="grid kpis" id="rfKpi"></section>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:4px">Rimborsi per periodo</h3>
+    <p class="chart-sub" id="rfChartSub">importo rimborsato &middot; contestazioni vs normali</p>
+    <div id="rfChart" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:4px">Per provider</h3>
+    <p class="chart-sub">importo rimborsato nel periodo, per canale di pagamento</p>
+    <div id="rfProv" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:4px">Per prodotto <span class="cnt" style="color:var(--muted);font-size:12px;font-weight:600">&middot; storico 2026</span></h3>
+    <p class="chart-sub">importo rimborsato totale per prodotto (top 10, non filtrato per periodo)</p>
+    <div id="rfProd" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-bottom:4px">Incidenza sul fatturato <span class="cnt" style="color:var(--muted);font-size:12px;font-weight:600">&middot; mensile</span></h3>
+    <p class="chart-sub">% rimborsi (per cassa) sul fatturato USA, mese per mese</p>
+    <div id="rfMon" style="margin-top:12px"></div>
+  </div>
+</div>
 <div class="tip" id="tip"></div>
 
 <script>
@@ -865,10 +901,10 @@ function renderNF(){const card=document.getElementById('nfCard');if(!card)return
   if(sEl)sEl.textContent='ticket gestiti · nuovi + follow-up per '+granLab(TGRAN);}
 
 /* NAV / ROUTER */
-const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['email','Analisi email']];
+const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['email','Analisi email'],['refund','Rimborsi USA']];
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
   document.querySelectorAll('#appnav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));window.scrollTo(0,0);
-  if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();}
+  if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='refund')renderRefund();}
 document.getElementById('appnav').innerHTML=PAGES.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='home'?' class="on"':'')+'>'+p[1]+'</button>').join('');
 document.getElementById('appnav').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)showPage(b.dataset.p);});
 
@@ -879,11 +915,46 @@ document.getElementById('tkFrom').addEventListener('change',e=>{TKFROM=e.target.
 document.getElementById('tkTo').addEventListener('change',e=>{TKTO=e.target.value;renderAll();});
 document.getElementById('tkClear').addEventListener('click',()=>{TKFROM='';TKTO='';document.getElementById('tkFrom').value='';document.getElementById('tkTo').value='';renderAll();});
 
+/* pagina Rimborsi USA */
+const RF={"updated":"20/08/2026","summary":{"n":1090,"tot":93613.96,"fat":1093065.97,"pct":8.56},"weeks":[{"iso":"2025-12-29","dal":"29/12/2025","al":"04/01/2026","n":2,"tot":94.0,"cont":0.0,"norm":94.0,"sf":47.0,"pf":47.0,"sp":0.0,"nmi":0.0},{"iso":"2026-01-05","dal":"05/01/2026","al":"11/01/2026","n":3,"tot":143.0,"cont":0.0,"norm":143.0,"sf":0.0,"pf":143.0,"sp":0.0,"nmi":0.0},{"iso":"2026-01-12","dal":"12/01/2026","al":"18/01/2026","n":1,"tot":78.0,"cont":0.0,"norm":78.0,"sf":0.0,"pf":78.0,"sp":0.0,"nmi":0.0},{"iso":"2026-01-19","dal":"19/01/2026","al":"25/01/2026","n":11,"tot":673.0,"cont":0.0,"norm":673.0,"sf":190.0,"pf":483.0,"sp":0.0,"nmi":0.0},{"iso":"2026-01-26","dal":"26/01/2026","al":"01/02/2026","n":7,"tot":437.0,"cont":0.0,"norm":437.0,"sf":145.0,"pf":292.0,"sp":0.0,"nmi":0.0},{"iso":"2026-02-02","dal":"02/02/2026","al":"08/02/2026","n":7,"tot":447.0,"cont":0.0,"norm":447.0,"sf":145.0,"pf":302.0,"sp":0.0,"nmi":0.0},{"iso":"2026-02-09","dal":"09/02/2026","al":"15/02/2026","n":37,"tot":1907.0,"cont":0.0,"norm":1907.0,"sf":1147.0,"pf":760.0,"sp":0.0,"nmi":0.0},{"iso":"2026-02-16","dal":"16/02/2026","al":"22/02/2026","n":35,"tot":2116.95,"cont":96.0,"norm":2020.95,"sf":793.0,"pf":1276.95,"sp":47.0,"nmi":0.0},{"iso":"2026-02-23","dal":"23/02/2026","al":"01/03/2026","n":16,"tot":861.95,"cont":47.0,"norm":814.95,"sf":431.0,"pf":381.95,"sp":49.0,"nmi":0.0},{"iso":"2026-03-02","dal":"02/03/2026","al":"08/03/2026","n":38,"tot":2780.33,"cont":324.0,"norm":2456.33,"sf":785.0,"pf":702.0,"sp":919.0,"nmi":374.33},{"iso":"2026-03-09","dal":"09/03/2026","al":"15/03/2026","n":27,"tot":1435.95,"cont":47.0,"norm":1388.95,"sf":143.0,"pf":709.0,"sp":583.95,"nmi":0.0},{"iso":"2026-03-16","dal":"16/03/2026","al":"22/03/2026","n":25,"tot":1707.9,"cont":162.0,"norm":1545.9,"sf":422.0,"pf":988.9,"sp":297.0,"nmi":0.0},{"iso":"2026-03-23","dal":"23/03/2026","al":"29/03/2026","n":22,"tot":1491.9,"cont":115.0,"norm":1376.9,"sf":47.0,"pf":889.9,"sp":555.0,"nmi":0.0},{"iso":"2026-03-30","dal":"30/03/2026","al":"05/04/2026","n":41,"tot":2890.06,"cont":115.0,"norm":2775.06,"sf":386.0,"pf":1257.95,"sp":842.45,"nmi":403.66},{"iso":"2026-04-06","dal":"06/04/2026","al":"12/04/2026","n":21,"tot":1762.52,"cont":287.0,"norm":1475.52,"sf":115.0,"pf":1428.34,"sp":219.18,"nmi":0.0},{"iso":"2026-04-13","dal":"13/04/2026","al":"19/04/2026","n":22,"tot":2089.77,"cont":193.79,"norm":1895.98,"sf":0.0,"pf":800.25,"sp":559.37,"nmi":730.15},{"iso":"2026-04-20","dal":"20/04/2026","al":"26/04/2026","n":27,"tot":2149.32,"cont":78.0,"norm":2071.32,"sf":308.0,"pf":1384.57,"sp":404.3,"nmi":52.45},{"iso":"2026-04-27","dal":"27/04/2026","al":"03/05/2026","n":18,"tot":1309.36,"cont":217.0,"norm":1092.36,"sf":115.0,"pf":413.89,"sp":279.73,"nmi":500.74},{"iso":"2026-05-04","dal":"04/05/2026","al":"10/05/2026","n":31,"tot":2660.08,"cont":1432.39,"norm":1227.69,"sf":344.0,"pf":731.86,"sp":1198.4,"nmi":385.82},{"iso":"2026-05-11","dal":"11/05/2026","al":"17/05/2026","n":23,"tot":1951.4,"cont":431.48,"norm":1519.92,"sf":0.0,"pf":734.18,"sp":630.61,"nmi":586.61},{"iso":"2026-05-18","dal":"18/05/2026","al":"24/05/2026","n":42,"tot":3743.75,"cont":255.77,"norm":3487.98,"sf":0.0,"pf":1467.83,"sp":494.4,"nmi":1781.52},{"iso":"2026-05-25","dal":"25/05/2026","al":"31/05/2026","n":16,"tot":1380.38,"cont":49.9,"norm":1330.48,"sf":0.0,"pf":740.06,"sp":219.15,"nmi":421.17},{"iso":"2026-06-01","dal":"01/06/2026","al":"07/06/2026","n":20,"tot":1988.98,"cont":110.09,"norm":1878.89,"sf":115.0,"pf":1194.1,"sp":243.75,"nmi":436.13},{"iso":"2026-06-08","dal":"08/06/2026","al":"14/06/2026","n":18,"tot":1536.54,"cont":47.0,"norm":1489.54,"sf":115.0,"pf":318.0,"sp":484.84,"nmi":618.7},{"iso":"2026-06-15","dal":"15/06/2026","al":"21/06/2026","n":23,"tot":1850.62,"cont":523.89,"norm":1326.73,"sf":445.0,"pf":534.02,"sp":415.95,"nmi":455.65},{"iso":"2026-06-22","dal":"22/06/2026","al":"28/06/2026","n":33,"tot":3113.37,"cont":129.9,"norm":2983.47,"sf":0.0,"pf":1152.68,"sp":517.33,"nmi":1443.36},{"iso":"2026-06-29","dal":"29/06/2026","al":"05/07/2026","n":56,"tot":4872.62,"cont":206.09,"norm":4666.53,"sf":234.0,"pf":1991.49,"sp":96.0,"nmi":2551.13},{"iso":"2026-07-06","dal":"06/07/2026","al":"12/07/2026","n":57,"tot":4265.48,"cont":49.85,"norm":4215.63,"sf":0.0,"pf":1777.84,"sp":260.13,"nmi":2227.51},{"iso":"2026-07-13","dal":"13/07/2026","al":"19/07/2026","n":52,"tot":4335.47,"cont":0.0,"norm":4335.47,"sf":0.0,"pf":1552.61,"sp":272.64,"nmi":2510.22},{"iso":"2026-07-20","dal":"20/07/2026","al":"26/07/2026","n":109,"tot":11571.26,"cont":502.81,"norm":11068.45,"sf":0.0,"pf":4515.86,"sp":335.39,"nmi":6720.01},{"iso":"2026-07-27","dal":"27/07/2026","al":"02/08/2026","n":74,"tot":7443.82,"cont":630.22,"norm":6813.6,"sf":0.0,"pf":412.82,"sp":1463.93,"nmi":5567.07},{"iso":"2026-08-03","dal":"03/08/2026","al":"09/08/2026","n":96,"tot":9834.38,"cont":575.57,"norm":9258.81,"sf":0.0,"pf":2438.41,"sp":1718.88,"nmi":5628.09},{"iso":"2026-08-10","dal":"10/08/2026","al":"16/08/2026","n":68,"tot":7233.6,"cont":110.09,"norm":7123.51,"sf":0.0,"pf":1850.86,"sp":953.25,"nmi":4429.49},{"iso":"2026-08-17","dal":"17/08/2026","al":"23/08/2026","n":12,"tot":1457.19,"cont":0.0,"norm":1457.19,"sf":0.0,"pf":298.78,"sp":0.0,"nmi":1158.41}],"prods":[{"name":"calmicollar sub","n":619,"tot":62612.63},{"name":"up 4%","n":112,"tot":8437.2},{"name":"leash walk formula","n":150,"tot":7050.0},{"name":"calmicollar","n":56,"tot":5817.91},{"name":"wonderwalk","n":55,"tot":2838.0},{"name":"enercanis sub","n":23,"tot":2403.95},{"name":"The Four-Leaf Dog Training","n":17,"tot":1649.0},{"name":"calmicollar cat","n":10,"tot":914.91},{"name":"enercanis","n":9,"tot":796.8},{"name":"vip","n":7,"tot":349.65},{"name":"calmipad","n":2,"tot":299.9},{"name":"shipping protection","n":25,"tot":238.33},{"name":"50 SHADES OF FUN","n":3,"tot":141.0},{"name":"up 6\\*","n":1,"tot":44.73},{"name":"wonderleash","n":1,"tot":19.95}],"months":[{"m":"2026-01","fat":34416.0,"cassa":1425.0},{"m":"2026-02","fat":68086.95,"cassa":5332.9},{"m":"2026-03","fat":79895.8,"cassa":9401.44},{"m":"2026-04","fat":142632.79,"cassa":7562.66},{"m":"2026-05","fat":201768.74,"cassa":10388.62},{"m":"2026-06","fat":332875.62,"cassa":9705.25},{"m":"2026-07","fat":233390.07,"cassa":28964.9},{"m":"2026-08","fat":0.0,"cassa":16857.01},{"m":"2026-09","fat":0.0,"cassa":0.0},{"m":"2026-10","fat":0.0,"cassa":0.0},{"m":"2026-11","fat":0.0,"cassa":0.0},{"m":"2026-12","fat":0.0,"cassa":0.0}]};
+const RFF={gran:'week',from:'',to:''};
+function rfBar(lab,v,max,mm,col,extra){return '<div class="rbar-row"><div class="lab">'+lab+(extra?' <span class="cnt" style="color:var(--muted);font-size:11px">'+extra+'</span>':'')+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(max?v/max*100:0).toFixed(1)+'%;background:'+col+'"></div></div><div class="rbar-val">'+mm(v)+'</div></div>';}
+function renderRefund(){
+  var u=document.getElementById('rfUpd'); if(u)u.textContent=RF.updated;
+  var wk=RF.weeks, inr=wk.filter(function(w){return inR(w.iso,RFF.from,RFF.to);});
+  var mm=function(v){return '$ '+Number(v||0).toLocaleString('en-US',{maximumFractionDigits:0});};
+  var sum=function(k){return inr.reduce(function(s,w){return s+(w[k]||0);},0);};
+  var tot=sum('tot'), n=inr.reduce(function(s,w){return s+w.n;},0), cont=sum('cont');
+  var avg=n?tot/n:0, pctCont=tot?cont/tot*100:0;
+  var kEl=document.getElementById('rfKpi');
+  if(kEl)kEl.innerHTML=
+    kpiCard('Rimborsi nel periodo',mm(tot),(RFF.from||RFF.to)?rngTxt(RFF):'2026 · per cassa','var(--n)')+
+    kpiCard('Numero rimborsi',n.toLocaleString('it-IT'),'operazioni di rimborso')+
+    kpiCard('Rimborso medio',mm(avg),'importo medio per rimborso','var(--m)')+
+    kpiCard('Da contestazioni',pit(pctCont),mm(cont)+' su '+mm(tot),'var(--warn)');
+  var rows=inr.map(function(w){return {iso:w.iso,norm:w.norm,cont:w.cont};});
+  stackChart('rfChart',aggDaily(rows,RFF.gran,RFF.from,RFF.to,['norm','cont']),[{k:'norm',col:'var(--m)'},{k:'cont',col:'var(--warn)'}]);
+  var cs=document.getElementById('rfChartSub'); if(cs)cs.textContent='importo rimborsato per '+granLab(RFF.gran)+' · blu = rimborsi normali, giallo = da contestazioni';
+  var prov=[['Stripe Fantasticane',sum('sf')],['PayPal Fantasticane',sum('pf')],['Stripe ThePawesome',sum('sp')],['NMI',sum('nmi')]].sort(function(a,b){return b[1]-a[1];});
+  var maxP=Math.max.apply(null,prov.map(function(p){return p[1];}).concat(1));
+  var pv=document.getElementById('rfProv'); if(pv)pv.innerHTML=prov.map(function(p){return rfBar(p[0],p[1],maxP,mm,'var(--good)');}).join('');
+  var prods=RF.prods.slice().sort(function(a,b){return b.tot-a.tot;}).slice(0,10);
+  var maxPr=Math.max.apply(null,prods.map(function(p){return p.tot;}).concat(1));
+  var pr=document.getElementById('rfProd'); if(pr)pr.innerHTML=prods.map(function(p){return rfBar(p.name,p.tot,maxPr,mm,'var(--m)',p.n+' rimb.');}).join('');
+  var mrows=RF.months.filter(function(m){return m.fat>0;});
+  var maxInc=Math.max.apply(null,mrows.map(function(m){return m.fat?m.cassa/m.fat*100:0;}).concat(0.1));
+  var mo=document.getElementById('rfMon');
+  if(mo)mo.innerHTML=mrows.map(function(m){var pct=m.fat?m.cassa/m.fat*100:0;var lab=(MONM[m.m.slice(5,7)]||m.m);
+    return '<div class="rbar-row"><div class="lab">'+lab+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(pct/maxInc*100).toFixed(1)+'%;background:var(--warn)"></div></div><div class="rbar-val">'+pit(pct)+'</div></div>';}).join('');
+  pfInfo('pf-refund',rngTxt(RFF)+' · '+mm(tot)+' · '+n.toLocaleString('it-IT')+' rimborsi');
+}
+
 /* barre filtro */
 buildPF('pf-email',EMAILF,renderEmail);
 buildPF('pf-subs',SUBF,renderSubsFilter);
 buildPF('pf-finance',FINF,renderFinFilter);
 buildPF('pf-contest',CONTF,function(){renderPctSeries();},{noGran:true});
+buildPF('pf-refund',RFF,renderRefund);
 
 /* render + aggancio live */
 renderRebills=(function(o){return function(){o.apply(this,arguments);try{renderSubsFilter();}catch(e){}try{renderHome();}catch(e){}};})(renderRebills);
