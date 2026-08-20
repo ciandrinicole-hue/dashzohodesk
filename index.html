@@ -221,6 +221,7 @@
             <th class="cu gsep">Non assegnati</th>
             <th class="gsep">Nuovi</th>
             <th class="gsep">Follow-up</th>
+            <th class="gsep">Repliche cliente</th>
             <th class="tot gsep">Totale</th>
           </tr>
         </thead>
@@ -489,7 +490,7 @@ function renderAll(){
   document.querySelector('#histTable tbody').innerHTML=hrows.map((r)=>`
     <tr class="${r.today?'today':''}">
       <td>${r.lab}</td>
-      <td class="cm gsep">${r.mc}</td><td class="cn gsep">${r.nc}</td><td class="cu gsep">${r.uc}</td><td class="gsep" style="color:var(--m)">${r.nw!=null?r.nw:'—'}</td><td class="gsep" style="color:var(--warn)">${r.fu!=null?r.fu:'—'}</td><td class="tot gsep">${r.tc}</td>
+      <td class="cm gsep">${r.mc}</td><td class="cn gsep">${r.nc}</td><td class="cu gsep">${r.uc}</td><td class="gsep" style="color:var(--m)">${r.nw!=null?r.nw:'—'}</td><td class="gsep" style="color:var(--warn)">${r.fu!=null?r.fu:'—'}</td><td class="gsep" style="color:var(--n)">${r.cr!=null?r.cr:'—'}</td><td class="tot gsep">${r.tc}</td>
     </tr>`).join('');
   const _unit=TGRAN==='day'?'giorni':(TGRAN==='week'?'settimane':'mesi');
   document.getElementById('histGran').textContent=TGRAN==='day'?'giornaliero':(TGRAN==='week'?'settimanale':'mensile');
@@ -516,13 +517,13 @@ function aggView(){
 }
 function histRows(){
   const last=DATA[DATA.length-1];
-  if(TGRAN==='day') return VIEW.map(r=>({lab:r.d,mc:r.mc,nc:r.nc,uc:r.uc,tc:r.tc,nw:r.nw,fu:r.fu,today:r.d===last.d}));
+  if(TGRAN==='day') return VIEW.map(r=>({lab:r.d,mc:r.mc,nc:r.nc,uc:r.uc,tc:r.tc,nw:r.nw,fu:r.fu,cr:r.cr,today:r.d===last.d}));
   const map={};
   VIEW.forEach(r=>{const dd=r.d.slice(0,2),mm=r.d.slice(3,5);let key,lab;
     if(TGRAN==='month'){key=mm;lab=(MONTHS[mm]||mm);}
     else{const y=curYear()||'2026';const dt=new Date(Date.UTC(+y,+mm-1,+dd));const wd=(dt.getUTCDay()+6)%7;dt.setUTCDate(dt.getUTCDate()-wd);const e=new Date(dt);e.setUTCDate(e.getUTCDate()+6);const f=x=>String(x.getUTCDate()).padStart(2,'0')+'/'+String(x.getUTCMonth()+1).padStart(2,'0');key=dt.toISOString().slice(0,10);lab=f(dt)+' – '+f(e);}
-    const o=map[key]||(map[key]={lab,mc:0,nc:0,uc:0,tc:0,nw:0,fu:0,nfDef:false});o.mc+=r.mc;o.nc+=r.nc;o.uc+=r.uc;o.tc+=r.tc;if(r.nw!=null){o.nw+=r.nw;o.fu+=(r.fu||0);o.nfDef=true;}});
-  return Object.keys(map).sort().map(k=>{const o=map[k];if(!o.nfDef){o.nw=null;o.fu=null;}return o;});
+    const o=map[key]||(map[key]={lab,mc:0,nc:0,uc:0,tc:0,nw:0,fu:0,cr:0,nfDef:false});o.mc+=r.mc;o.nc+=r.nc;o.uc+=r.uc;o.tc+=r.tc;if(r.nw!=null){o.nw+=r.nw;o.fu+=(r.fu||0);o.cr+=(r.cr||0);o.nfDef=true;}});
+  return Object.keys(map).sort().map(k=>{const o=map[k];if(!o.nfDef){o.nw=null;o.fu=null;o.cr=null;}return o;});
 }
 function barChart(){
   const PLOT=aggView();
@@ -871,10 +872,10 @@ function renderHome(){const el=document.getElementById('homeBody');if(!el)return
   const go=(id,txt)=>'<button class="lnk" onclick="showPage(\''+id+'\')">'+txt+' →</button>';
   el.innerHTML=
     '<div class="home-title">Ticket assistenza '+go('ticket','dettaglio')+'</div><section class="grid kpis">'+
-      kpiCard('Chiusi oggi ('+last.d+')',last.tc,'M '+last.mc+' · N '+last.nc+' · NA '+last.uc,'var(--good)')+
+      kpiCard('Chiusi oggi ('+last.d+')',last.tc,'M '+last.mc+' · N '+last.nc+' · NA '+last.uc+(last.cr!=null?' · repliche cliente '+last.cr:''),'var(--good)')+
       kpiCard('Aperti da gestire',openTot,'M '+(OPEN.m||0)+' · N '+(OPEN.n||0)+' · NA '+(OPEN.u||0),'var(--warn)')+
       kpiCard('Chiusi ultimi 7 gg',last7.toLocaleString('it-IT'),'media '+Math.round(last7/7)+'/g')+
-      kpiCard('Chiusi totali',cum.toLocaleString('it-IT'),(DATA.some(x=>x.nw!=null)?('nuovi '+DATA.reduce((s,x)=>s+(x.nw||0),0).toLocaleString('it-IT')+' · follow-up '+DATA.reduce((s,x)=>s+(x.fu||0),0).toLocaleString('it-IT')):'dal 03/07'))+'</section>'+
+      kpiCard('Chiusi totali',cum.toLocaleString('it-IT'),(DATA.some(x=>x.nw!=null)?('nuovi '+DATA.reduce((s,x)=>s+(x.nw||0),0).toLocaleString('it-IT')+' · follow-up '+DATA.reduce((s,x)=>s+(x.fu||0),0).toLocaleString('it-IT')+' · repliche cliente '+DATA.reduce((s,x)=>s+(x.cr||0),0).toLocaleString('it-IT')):'dal 03/07'))+'</section>'+
     '<div class="home-title">Analisi email '+go('email','dettaglio')+'</div><section class="grid kpis">'+
       kpiCard('Email totali',emN.toLocaleString('it-IT'),'04/07 → 08/08')+
       kpiCard('Annullamenti',pit(emN?em.CA/emN*100:0),em.CA.toLocaleString('it-IT')+' email','var(--n)')+
@@ -892,13 +893,13 @@ function renderNF(){const card=document.getElementById('nfCard');if(!card)return
   const hasNF=VIEW.some(r=>r.nw!=null);
   if(!hasNF){if(kEl)kEl.innerHTML='';if(cEl)cEl.innerHTML='<p class="chart-sub">Il dettaglio nuovi/follow-up comparirà dopo il prossimo aggiornamento dei dati.</p>';if(sEl)sEl.textContent='in attesa dell\'aggiornamento';return;}
   const rows=VIEW.map(r=>({iso:ddmmToIso(r.d),nw:(r.nw!=null?r.nw:0),fu:(r.fu!=null?r.fu:0)}));
-  const nw=VIEW.reduce((s,r)=>s+(r.nw||0),0),fu=VIEW.reduce((s,r)=>s+(r.fu||0),0),tot=nw+fu,p=v=>tot?v/tot*100:0;
+  const nw=VIEW.reduce((s,r)=>s+(r.nw||0),0),fu=VIEW.reduce((s,r)=>s+(r.fu||0),0),cr=VIEW.reduce((s,r)=>s+(r.cr||0),0),tot=nw+fu,p=v=>tot?v/tot*100:0;
   if(kEl)kEl.innerHTML=
     '<div><div class="cnt" style="color:var(--muted)">Gestiti</div><div class="big" style="font-size:26px">'+tot.toLocaleString('it-IT')+'</div></div>'+
     '<div><div class="cnt" style="color:var(--muted)">Nuovi</div><div class="big" style="font-size:26px;color:var(--m)">'+nw.toLocaleString('it-IT')+'</div><div class="sub">'+pit(p(nw))+'</div></div>'+
-    '<div><div class="cnt" style="color:var(--muted)">Follow-up</div><div class="big" style="font-size:26px;color:var(--warn)">'+fu.toLocaleString('it-IT')+'</div><div class="sub">'+pit(p(fu))+'</div></div>';
+    '<div><div class="cnt" style="color:var(--muted)">Follow-up</div><div class="big" style="font-size:26px;color:var(--warn)">'+fu.toLocaleString('it-IT')+'</div><div class="sub">'+pit(p(fu))+'</div></div>'+'<div><div class="cnt" style="color:var(--muted)">Con replica cliente</div><div class="big" style="font-size:26px;color:var(--n)">'+cr.toLocaleString('it-IT')+'</div><div class="sub">'+pit(p(cr))+' dei gestiti</div></div>';
   stackChart('nfChart',aggDaily(rows,TGRAN,'','',['nw','fu']),[{k:'nw',col:'var(--m)'},{k:'fu',col:'var(--warn)'}]);
-  if(sEl)sEl.textContent='ticket gestiti · nuovi + follow-up per '+granLab(TGRAN);}
+  if(sEl)sEl.textContent='ticket gestiti · nuovi/follow-up + repliche del cliente per '+granLab(TGRAN);}
 
 /* NAV / ROUTER */
 const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['email','Analisi email'],['refund','Rimborsi USA']];

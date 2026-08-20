@@ -120,8 +120,13 @@ def bucket_tickets(tickets, target_dates):
     """tickets: iterable di dict ticket. Ritorna {date: [mc, nc, uc]} per le date in target_dates,
     assegnando ogni ticket al giorno di chiusura NEL FUSO del suo operatore."""
     tset = set(target_dates)
-    # [mc, nc, uc, nw, fu]  (nw=nuovi, fu=follow-up ; nw+fu == mc+nc+uc)
-    buckets = {d: [0, 0, 0, 0, 0] for d in target_dates}
+    # [mc, nc, uc, nw, fu, cr]
+    #   mc/nc/uc = chiusi per Mavreen / Nicole / non assegnati
+    #   nw/fu    = nuovi vs follow-up per OGGETTO (nw+fu == mc+nc+uc)
+    #   cr       = ticket con REPLICA DEL CLIENTE dopo la nostra risposta
+    #              (conversazione con piu' di uno scambio: threadCount >= 3).
+    #              E' una dimensione a parte: 0 <= cr <= mc+nc+uc.
+    buckets = {d: [0, 0, 0, 0, 0, 0] for d in target_dates}
     for t in tickets:
         ct = t.get("closedTime")
         if not ct:
@@ -141,6 +146,12 @@ def bucket_tickets(tickets, target_dates):
             buckets[ld][4] += 1
         else:
             buckets[ld][3] += 1
+        try:
+            tcount = int(t.get("threadCount") or 0)
+        except (TypeError, ValueError):
+            tcount = 0
+        if tcount >= 3:
+            buckets[ld][5] += 1
     return buckets
 
 
@@ -185,9 +196,9 @@ def main():
     by_label = {d.get("d"): d for d in days}
 
     for dt in sorted(buckets):
-        mc, nc, uc, nw, fu = buckets[dt]
+        mc, nc, uc, nw, fu, cr = buckets[dt]
         label = dt.strftime("%d/%m")
-        entry = {"d": label, "mc": mc, "nc": nc, "uc": uc, "tc": mc + nc + uc, "nw": nw, "fu": fu}
+        entry = {"d": label, "mc": mc, "nc": nc, "uc": uc, "tc": mc + nc + uc, "nw": nw, "fu": fu, "cr": cr}
         if label in by_label:
             by_label[label].update(entry)          # aggiorna sul posto (ordine invariato)
         else:
@@ -204,8 +215,9 @@ def main():
     tot = sum(v[0] + v[1] + v[2] for v in buckets.values())
     tnw = sum(v[3] for v in buckets.values())
     tfu = sum(v[4] for v in buckets.values())
+    tcr = sum(v[5] for v in buckets.values())
     print(f"OK lookback={LOOKBACK_DAYS} giorni={len(buckets)} chiusi={tot} nuovi={tnw} followup={tfu} "
-          f"| aperti M={op['m']} N={op['n']} NonAss={op['u']}")
+          f"repliche_cliente={tcr} | aperti M={op['m']} N={op['n']} NonAss={op['u']}")
 
 
 if __name__ == "__main__":
