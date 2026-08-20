@@ -471,12 +471,13 @@ function renderAll(){
     <div class="card kpi"><h3>Chiusi ultimi 7 giorni</h3><div class="big">${last7.toLocaleString('it-IT')}</div><div class="sub">media ${Math.round(last7/7)} / giorno</div></div>
     <div class="card kpi"><h3>Chiusi totali (dal 03/07)</h3><div class="big">${cum.toLocaleString('it-IT')}</div><div class="sub">${DATA.length} giorni tracciati</div></div>`;
 
-  const agents=[{name:'Mavreen',cls:'m',k:'mc',o:'m'},{name:'Nicole',cls:'n',k:'nc',o:'n'},{name:'Non assegnati',cls:'u',k:'uc',o:'u'}];
+  const agents=[{name:'Mavreen',cls:'m',k:'mc',o:'m',cr:'mcr'},{name:'Nicole',cls:'n',k:'nc',o:'n',cr:'ncr'},{name:'Non assegnati',cls:'u',k:'uc',o:'u',cr:'ucr'}];
   document.getElementById('agents').innerHTML=agents.map(a=>`
     <div class="card"><span class="agent-name"><span class="dot ${a.cls}"></span>${a.name}</span>
       <div class="agent-metrics">
         <div class="metric"><div class="n green">${last[a.k]}</div><div class="l">chiusi oggi</div></div>
         <div class="metric"><div class="n amber">${OPEN[a.o]||0}</div><div class="l">aperti da gestire</div></div>
+        ${last[a.cr]!=null?`<div class="metric"><div class="n" style="color:var(--n)">${last[a.cr]}</div><div class="l">repliche cliente</div></div>`:''}
       </div>
       ${sparkline(a.k,C[a.cls])}
       <div class="l" style="color:var(--muted);font-size:11px;margin-top:6px">andamento chiusi · ${DATA.length} giorni</div></div>`).join('');
@@ -902,7 +903,7 @@ function renderNF(){const card=document.getElementById('nfCard');if(!card)return
   if(sEl)sEl.textContent='ticket gestiti · nuovi/follow-up + repliche del cliente per '+granLab(TGRAN);}
 
 /* NAV / ROUTER */
-const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['email','Analisi email'],['refund','Rimborsi USA']];
+const PAGES=[['home','Riepilogo'],['ticket','Ticket'],['email','Analisi email'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['refund','Rimborsi USA']];
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
   document.querySelectorAll('#appnav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));window.scrollTo(0,0);
   if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='refund')renderRefund();}
