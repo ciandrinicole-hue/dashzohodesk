@@ -6,20 +6,20 @@
 <title>NuumiPet Customer Care Dashboard</title>
 <style>
   :root{
-    --plane:#071a21; --surface:#0e2831; --surface-2:#14333d;
-    --ink:#eef7f6; --ink-2:#a7c6c5; --muted:#749291;
-    --grid:#1c3a43; --axis:#2a4d56; --border:rgba(120,216,200,0.14); --gsep:rgba(150,230,215,0.24);
-    --m:#3aa5e6; --n:#ff7a4d; --u:#2fc79a; --good:#12c2b6; --warn:#ffc24a; --brand:#12c2b6; --brand-2:#0a8f96; --brand-deep:#001830;
+    --plane:#0c1e1e; --surface:#152e2d; --surface-2:#1c3a39;
+    --ink:#eef6f5; --ink-2:#a9c4c3; --muted:#6f8c8b;
+    --grid:#1e3a39; --axis:#2b4d4b; --border:rgba(7,173,171,0.16); --gsep:rgba(7,173,171,0.26);
+    --m:#3aa5e6; --n:#ff7a4d; --u:#25c2a0; --good:#07adab; --warn:#ffc24a; --brand:#07adab; --brand-2:#206e6c; --brand-deep:#1c3333;
     --shadow:0 1px 0 rgba(255,255,255,0.03), 0 10px 30px rgba(0,8,12,0.45);
   }
   html[data-theme="light"]{
-    --plane:#eef5f4; --surface:#ffffff; --surface-2:#f4faf9;
-    --ink:#062028; --ink-2:#3f6663; --muted:#6f8f8e;
-    --grid:#dcecea; --axis:#b7d4d0; --border:rgba(6,24,28,0.10); --gsep:rgba(6,24,28,0.20);
-    --m:#2a86d0; --n:#e8663a; --u:#159c74; --good:#0a9d94; --warn:#c98500; --brand:#0a9d94; --brand-2:#0a8f96; --brand-deep:#001830;
+    --plane:#f9f8f6; --surface:#ffffff; --surface-2:#f2f0ec;
+    --ink:#1c3333; --ink-2:#4a5f5f; --muted:#7c908f;
+    --grid:#e2ece9; --axis:#c2d6d2; --border:rgba(28,51,51,0.10); --gsep:rgba(28,51,51,0.18);
+    --m:#2a86d0; --n:#e8663a; --u:#159c74; --good:#07adab; --warn:#b9791f; --brand:#07adab; --brand-2:#206e6c; --brand-deep:#1c3333;
     --shadow:0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
   }
-  .appnav button.on{background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;color:#04222a;box-shadow:0 4px 16px rgba(18,194,182,0.28)}
+  .appnav button.on{background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;color:#04222a;box-shadow:0 4px 16px rgba(7,173,171,0.30)}
   .appnav button:hover{border-color:var(--brand);color:var(--ink)}
   .seg button.on{background:var(--brand);border-color:transparent;color:#04222a}
   .lnk{color:var(--brand)}
@@ -27,7 +27,7 @@
   .idx-hero h2{margin:0 0 6px;font-size:clamp(22px,3vw,30px);color:#ffffff;letter-spacing:-.01em}
   .idx-hero p{margin:0 0 16px;color:var(--ink-2);font-size:14px;max-width:70ch}
   .idx-search{width:100%;max-width:560px;padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.07);color:var(--ink);font-size:15px;font-family:inherit;outline:none}
-  .idx-search:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(18,194,182,0.22)}
+  .idx-search:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(7,173,171,0.24)}
   .idx-search::placeholder{color:var(--muted)}
   .idx-cat{margin:22px 0 10px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
   .idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px}
@@ -35,9 +35,10 @@
   .idx-item:hover{transform:translateY(-2px);border-color:var(--brand);box-shadow:0 8px 22px rgba(0,10,14,0.35)}
   .idx-item .nm{color:var(--ink);font-weight:600;font-size:14px;margin:7px 0 3px;line-height:1.32}
   .idx-item .nt{color:var(--muted);font-size:12px;line-height:1.35}
-  .idx-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:999px;background:rgba(18,194,182,0.13)}
+  .idx-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:999px;background:rgba(7,173,171,0.14)}
   .idx-count{color:var(--muted);font-weight:400;font-size:11px;margin-left:6px}
   .idx-empty{color:var(--muted);padding:22px 4px}
+  .trend{font-size:12px;font-weight:700;margin-left:9px;vertical-align:middle;white-space:nowrap}
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--plane); color:var(--ink);
@@ -158,7 +159,21 @@
   .pfbar .lnk{font-size:12px;color:var(--m);cursor:pointer;font-weight:600;background:none;border:none;padding:0}
   .home-title{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;display:flex;align-items:center;gap:10px}
   .home-title button{font-size:11px}
-</style>
+  @media(max-width:640px){
+    nav.appnav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:8px}
+    .appnav::-webkit-scrollbar{display:none}
+    .appnav button{flex:0 0 auto}
+    #histTable{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+    .agent-metrics{gap:14px;flex-wrap:wrap}
+    .idx-hero{padding:20px 16px}
+    .idx-grid{grid-template-columns:1fr}
+    .rbar-row{grid-template-columns:92px 1fr 70px;gap:8px}
+    .rbar-row .lab{font-size:12px}
+    .updated{text-align:left}
+    .trend{display:inline-block;margin-left:8px}
+    .page .card{padding:14px}
+  }
+  </style>
 </head>
 <body>
 <div class="wrap">
@@ -484,19 +499,29 @@ function buildMonths(){
   sel.value=(prev==='all'||months.includes(prev))?prev:'all';FILTER=sel.value;
 }
 
+function trendBadge(cur,prev,goodUp){
+  if(prev==null||prev===0||cur==null)return '';
+  var d=(cur-prev)/prev*100; if(!isFinite(d))return '';
+  var up=d>0.5, down=d<-0.5;
+  var col=((up&&goodUp)||(down&&!goodUp))?'var(--good)':(((up&&!goodUp)||(down&&goodUp))?'#ef6b6b':'var(--muted)');
+  var arr=up?'\u25B2':(down?'\u25BC':'\u2013');
+  return '<span class="trend" style="color:'+col+'">'+arr+' '+Math.abs(Math.round(d))+'%</span>';
+}
 function renderAll(){
   const last=DATA[DATA.length-1];
+  const _prevDay=DATA[DATA.length-2]||null;
+  const _prev7=DATA.slice(-14,-7).reduce((s,x)=>s+(x.tc||0),0);
   const cum=DATA.reduce((s,x)=>s+x.tc,0);
   const last7=DATA.slice(-7).reduce((s,x)=>s+x.tc,0);
   const openTot=(OPEN.m||0)+(OPEN.n||0)+(OPEN.u||0);
   document.getElementById('upd').textContent=UPDATED;
 
   document.getElementById('kpis').innerHTML=`
-    <div class="card kpi"><h3>Chiusi oggi (${last.d})</h3><div class="big green">${last.tc}</div>
+    <div class="card kpi"><h3>Chiusi oggi (${last.d})</h3><div class="big green">${last.tc}${trendBadge(last.tc,_prevDay?_prevDay.tc:null,true)}</div>
       <div class="sub"><span class="chip"><span class="dot m"></span>${last.mc}</span><span class="chip"><span class="dot n"></span>${last.nc}</span><span class="chip"><span class="dot u"></span>${last.uc}</span></div></div>
     <div class="card kpi"><h3>Aperti da gestire ora</h3><div class="big amber">${openTot}</div>
       <div class="sub"><span class="chip"><span class="dot m"></span>${OPEN.m||0}</span><span class="chip"><span class="dot n"></span>${OPEN.n||0}</span><span class="chip"><span class="dot u"></span>${OPEN.u||0}</span></div></div>
-    <div class="card kpi"><h3>Chiusi ultimi 7 giorni</h3><div class="big">${last7.toLocaleString('it-IT')}</div><div class="sub">media ${Math.round(last7/7)} / giorno</div></div>
+    <div class="card kpi"><h3>Chiusi ultimi 7 giorni</h3><div class="big">${last7.toLocaleString('it-IT')}${trendBadge(last7,_prev7,true)}</div><div class="sub">media ${Math.round(last7/7)} / giorno</div></div>
     <div class="card kpi"><h3>Chiusi totali (dal 03/07)</h3><div class="big">${cum.toLocaleString('it-IT')}</div><div class="sub">${DATA.length} giorni tracciati</div></div>`;
 
   const agents=[{name:'Mavreen',cls:'m',k:'mc',o:'m',cr:'mcr'},{name:'Nicole',cls:'n',k:'nc',o:'n',cr:'ncr'},{name:'Non assegnati',cls:'u',k:'uc',o:'u',cr:'ucr'}];
@@ -901,9 +926,9 @@ function renderHome(){const el=document.getElementById('homeBody');if(!el)return
   const go=(id,txt)=>'<button class="lnk" onclick="showPage(\''+id+'\')">'+txt+' →</button>';
   el.innerHTML=
     '<div class="home-title">Ticket assistenza '+go('ticket','dettaglio')+'</div><section class="grid kpis">'+
-      kpiCard('Chiusi oggi ('+last.d+')',last.tc,'M '+last.mc+' · N '+last.nc+' · NA '+last.uc+(last.cr!=null?' · repliche cliente '+last.cr:''),'var(--good)')+
+      kpiCard('Chiusi oggi ('+last.d+')',last.tc+trendBadge(last.tc,(DATA[DATA.length-2]||{}).tc,true),'M '+last.mc+' · N '+last.nc+' · NA '+last.uc+(last.cr!=null?' · repliche cliente '+last.cr:''),'var(--good)')+
       kpiCard('Aperti da gestire',openTot,'M '+(OPEN.m||0)+' · N '+(OPEN.n||0)+' · NA '+(OPEN.u||0),'var(--warn)')+
-      kpiCard('Chiusi ultimi 7 gg',last7.toLocaleString('it-IT'),'media '+Math.round(last7/7)+'/g')+
+      kpiCard('Chiusi ultimi 7 gg',last7.toLocaleString('it-IT')+trendBadge(last7,DATA.slice(-14,-7).reduce((s,x)=>s+(x.tc||0),0),true),'media '+Math.round(last7/7)+'/g')+
       kpiCard('Chiusi totali',cum.toLocaleString('it-IT'),(DATA.some(x=>x.nw!=null)?('nuovi '+DATA.reduce((s,x)=>s+(x.nw||0),0).toLocaleString('it-IT')+' · follow-up '+DATA.reduce((s,x)=>s+(x.fu||0),0).toLocaleString('it-IT')+' · repliche cliente '+DATA.reduce((s,x)=>s+(x.cr||0),0).toLocaleString('it-IT')):'dal 03/07'))+'</section>'+
     '<div class="home-title">Analisi email '+go('email','dettaglio')+'</div><section class="grid kpis">'+
       kpiCard('Email totali',emN.toLocaleString('it-IT'),'04/07 → 08/08')+
