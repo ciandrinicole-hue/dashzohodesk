@@ -46,11 +46,11 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.json
+          git add data.json email.json
           if git diff --cached --quiet; then
-            echo "Nessuna modifica a data.json"
+            echo "Nessuna modifica a data.json / email.json"
           else
-            git commit -m "dati ticket: aggiornamento $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git commit -m "dati ticket + email: aggiornamento $(date -u +'%Y-%m-%d %H:%M UTC')"
             git push
           fi
 
