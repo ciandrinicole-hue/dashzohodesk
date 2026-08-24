@@ -46,6 +46,30 @@ def is_followup(subject):
     return True               # risposta a conversazione di assistenza -> follow-up
 
 
+# --- Classificazione tema email (pagina Analisi email) ---
+# Deterministica, per OGGETTO del ticket (la categoria Zoho e' quasi sempre vuota).
+#   CA = annullamento abbonamento         CH = addebito non autorizzato
+#   RE = reso / rimborso                  SH = spedizione / tracking
+#   OT = altro (oggetto generico o non classificabile dall'oggetto)
+# Alcune email di sistema (OTP Zoho, ticket demo, test) vengono escluse dal conteggio.
+EMAIL_NOISE = re.compile(r'otp for your zoho|zoho sign-in|ecco il tuo primo ticket|^\s*test\s*\d*\s*$', re.I)
+THEME_RULES = [
+    ('CH', re.compile(r'unauthor|non[- ]?author|not authori|fraud|scam|charged more|why.*charg|'
+                      r'did ?n.?t order|didn.?t order|double charg|chargeblast|dispute|unrecogni|auto ?pay|billed', re.I)),
+    ('RE', re.compile(r'return|refund|money back|reso|rimbors|send.*back', re.I)),
+    ('CA', re.compile(r'cancel|annull|unsubscrib|stop|no more|no further|end.*subscription|'
+                      r'reminder|next (shipment|order)|shipment is coming|subscri', re.I)),
+    ('SH', re.compile(r'track|where.*(order|package|is)|not (yet )?received|hasn.?t arrived|deliver|missing|status', re.I)),
+]
+
+def classify_theme(subject):
+    s = subject or ''
+    for k, rx in THEME_RULES:
+        if rx.search(s):
+            return k
+    return 'OT'
+
+
 def get_token():
     data = urllib.parse.urlencode({
         "refresh_token": os.environ["ZOHO_REFRESH_TOKEN"],
@@ -110,6 +134,55 @@ def fetch_closed(token, start_utc, end_utc):
                                  "modifiedTimeRange": rng, "sortBy": "-modifiedTime"}, token))
         a = b
     return out
+
+
+def fetch_created(token, start_utc, end_utc):
+    """Tutti i ticket con createdTime in [start,end], a blocchi di 2 giorni.
+    Usato per l'analisi email: una email in ingresso = un ticket creato."""
+    out = {}
+    step = timedelta(days=2)
+    a = start_utc
+    while a < end_utc:
+        b = min(a + step, end_utc)
+        rng = iso(a) + "," + iso(b)
+        out.update(paged_search({"departmentId": DEPT_ID,
+                                 "createdTimeRange": rng, "sortBy": "-createdTime"}, token))
+        a = b
+    return out
+
+
+def bucket_email(tickets, target_dates):
+    """Ritorna {date: {CA,CH,RE,SH,OT}} per le date in target_dates,
+    assegnando ogni email al giorno di CREAZIONE (fuso Europe/Rome)."""
+    tset = set(target_dates)
+    keys = ('CA', 'CH', 'RE', 'SH', 'OT')
+    buckets = {d: {k: 0 for k in keys} for d in target_dates}
+    for t in tickets:
+        if t.get("isSpam"):
+            continue
+        subj = t.get("subject") or ''
+        if EMAIL_NOISE.search(subj):
+            continue
+        ct = t.get("createdTime")
+        if not ct:
+            continue
+        cutc = datetime.strptime(ct[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=UTC)
+        ld = cutc.astimezone(TZ_LOCAL).date()
+        if ld not in tset:
+            continue
+        buckets[ld][classify_theme(subj)] += 1
+    return buckets
+
+
+def compute_email(token, now_local):
+    today = now_local.date()
+    targets = [today - timedelta(days=i) for i in range(LOOKBACK_DAYS)]
+    oldest = min(targets)
+    start_local = datetime(oldest.year, oldest.month, oldest.day, tzinfo=TZ_LOCAL)
+    start_utc = start_local.astimezone(UTC)
+    end_utc = datetime.now(UTC)
+    tickets = fetch_created(token, start_utc, end_utc)
+    return bucket_email(tickets.values(), targets)
 
 
 def agent_tz(assignee_id):
@@ -221,12 +294,38 @@ def main():
         json.dump(doc, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
+    # --- Analisi email: temi per giorno (email.json) ---
+    ebuckets = compute_email(token, now)
+    try:
+        with open("email.json", "r", encoding="utf-8") as f:
+            edoc = json.load(f)
+    except (FileNotFoundError, ValueError):
+        edoc = {"days": []}
+    edays = edoc.get("days", [])
+    eby = {d.get("d"): d for d in edays}
+    for dt in sorted(ebuckets):
+        b = ebuckets[dt]
+        label = dt.strftime("%d/%m")
+        entry = {"d": label, "CA": b["CA"], "CH": b["CH"], "RE": b["RE"], "SH": b["SH"], "OT": b["OT"]}
+        if label in eby:
+            eby[label].update(entry)
+        else:
+            edays.append(entry)
+            eby[label] = entry
+    edays.sort(key=lambda d: (d["d"][3:5], d["d"][0:2]))   # cronologico (dd/mm, stesso anno)
+    edoc["days"]    = edays
+    edoc["updated"] = now.strftime("%d/%m/%Y %H:%M")
+    with open("email.json", "w", encoding="utf-8") as f:
+        json.dump(edoc, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
     tot = sum(v[0] + v[1] + v[2] for v in buckets.values())
     tnw = sum(v[3] for v in buckets.values())
     tfu = sum(v[4] for v in buckets.values())
     tcr = sum(v[5] for v in buckets.values())
+    etot = sum(sum(b.values()) for b in ebuckets.values())
     print(f"OK lookback={LOOKBACK_DAYS} giorni={len(buckets)} chiusi={tot} nuovi={tnw} followup={tfu} "
-          f"repliche_cliente={tcr} | aperti M={op['m']} N={op['n']} NonAss={op['u']}")
+          f"repliche_cliente={tcr} email={etot} | aperti M={op['m']} N={op['n']} NonAss={op['u']}")
 
 
 if __name__ == "__main__":

@@ -380,7 +380,7 @@
   <div class="cb-head">
     <div>
       <h2>Analisi email clienti &mdash; temi</h2>
-      <p>ripartizione per area tematica &middot; reparto Nuumipet Support &middot; 1.999 email dal 04/07 all'08/08/2026 &middot; <span style="color:var(--muted)">snapshot 08/08/2026</span></p>
+      <p>ripartizione per area tematica &middot; reparto Nuumipet Support &middot; <span id="emailTot">—</span> email/ticket <span id="emailRange"></span> &middot; <span style="color:var(--muted)">agg. <span id="emailUpd">—</span></span></p>
     </div>
   </div>
 
@@ -424,7 +424,7 @@
     </div>
   </div>
 
-  <p class="note"><b>Metodologia.</b> Analisi di tutte le <b>1.999</b> email/ticket del reparto Nuumipet Support create dal 04/07 all'08/08/2026. Il tema &egrave; assegnato dall'oggetto quando &egrave; esplicito; per la quota maggioritaria di email il cui oggetto non rivela l'intento (risposte al promemoria di rinnovo, &laquo;(No Subject)&raquo;, oggetti generici) il tema &egrave; <b>stimato</b> leggendo un campione di 60 email. I conteggi della parte stimata sono quindi indicativi; le percentuali delle motivazioni si basano sul campione letto. Uno stesso cliente pu&ograve; toccare pi&ugrave; temi (es. annullamento + rimborso): qui &egrave; contato una sola volta sul tema principale. Ogni email &egrave; datata e classificata per tema (esatta per gli oggetti espliciti, modellata per quelli generici con le proporzioni del campione letto), quindi la pagina &egrave; filtrabile per data. Le percentuali delle motivazioni si basano sul campione letto.</p>
+  <p class="note"><b>Metodologia.</b> La pagina si aggiorna in automatico dai ticket Zoho. Ogni email/ticket in ingresso del reparto Nuumipet Support viene classificata per tema <b>dall'oggetto</b> (annullamento abbonamento, addebito non autorizzato, reso/rimborso, spedizione, altro) e conteggiata per giorno di arrivo. La classificazione &egrave; deterministica: gli oggetti generici o non espliciti (&laquo;(No Subject)&raquo;, ID ordine, oggetti vaghi) finiscono in &laquo;Altro&raquo;. Le email di sistema (OTP, notifiche automatiche, test) sono escluse. La pagina &egrave; filtrabile per data e si aggiorna con il tasto <b>Aggiorna</b>. Le percentuali delle motivazioni di annullamento qui sotto si basano su un campione letto a mano e restano indicative.</p>
   </div>
 </div>
 
@@ -817,7 +817,8 @@ function loadData(){
     .then(()=>fetch(WORKER+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(applyLive).catch(()=>{}))
     .then(()=>loadFatturato())
     .then(()=>loadRinnovi())
-    .finally(()=>{renderAll();renderContest();renderRebills();if(btn){btn.disabled=false;btn.classList.remove('spin');}});
+    .then(()=>loadEmail())
+    .finally(()=>{renderAll();renderContest();renderRebills();try{renderEmail();}catch(e){}if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
 renderContest();
@@ -825,6 +826,8 @@ renderRebills();
 loadData();
 
 /* ================= APP MULTI-PAGINA ================= */
+let EMAILLIVE=null;
+function loadEmail(){return fetch('email.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&Array.isArray(j.days)&&j.days.length){EMAILLIVE=j;}}).catch(function(){});}
 const EMAILDAY=[{"d":"03/07","CA":1,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"04/07","CA":23,"CH":2,"RE":0,"SH":0,"OT":3},{"d":"05/07","CA":3,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"07/07","CA":0,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"09/07","CA":2,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"10/07","CA":1,"CH":0,"RE":0,"SH":0,"OT":0},{"d":"11/07","CA":2,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"13/07","CA":0,"CH":1,"RE":0,"SH":0,"OT":0},{"d":"14/07","CA":4,"CH":0,"RE":0,"SH":0,"OT":2},{"d":"15/07","CA":75,"CH":2,"RE":6,"SH":1,"OT":21},{"d":"16/07","CA":60,"CH":9,"RE":5,"SH":4,"OT":16},{"d":"17/07","CA":48,"CH":3,"RE":4,"SH":2,"OT":7},{"d":"18/07","CA":34,"CH":4,"RE":5,"SH":0,"OT":10},{"d":"19/07","CA":59,"CH":3,"RE":2,"SH":0,"OT":7},{"d":"20/07","CA":120,"CH":15,"RE":9,"SH":5,"OT":10},{"d":"21/07","CA":137,"CH":5,"RE":11,"SH":3,"OT":16},{"d":"22/07","CA":103,"CH":9,"RE":7,"SH":1,"OT":19},{"d":"23/07","CA":74,"CH":11,"RE":10,"SH":1,"OT":10},{"d":"24/07","CA":43,"CH":4,"RE":10,"SH":4,"OT":10},{"d":"25/07","CA":47,"CH":8,"RE":4,"SH":4,"OT":8},{"d":"26/07","CA":34,"CH":4,"RE":3,"SH":4,"OT":9},{"d":"27/07","CA":42,"CH":6,"RE":3,"SH":3,"OT":12},{"d":"28/07","CA":44,"CH":6,"RE":6,"SH":2,"OT":5},{"d":"29/07","CA":37,"CH":7,"RE":10,"SH":4,"OT":5},{"d":"30/07","CA":56,"CH":7,"RE":5,"SH":4,"OT":9},{"d":"31/07","CA":38,"CH":4,"RE":2,"SH":2,"OT":5},{"d":"01/08","CA":32,"CH":3,"RE":10,"SH":0,"OT":5},{"d":"02/08","CA":52,"CH":0,"RE":1,"SH":3,"OT":7},{"d":"03/08","CA":37,"CH":3,"RE":4,"SH":3,"OT":7},{"d":"04/08","CA":43,"CH":3,"RE":3,"SH":1,"OT":10},{"d":"05/08","CA":47,"CH":5,"RE":9,"SH":1,"OT":10},{"d":"06/08","CA":53,"CH":11,"RE":9,"SH":2,"OT":10},{"d":"07/08","CA":42,"CH":7,"RE":3,"SH":2,"OT":7},{"d":"08/08","CA":18,"CH":2,"RE":0,"SH":0,"OT":5}];
 const EMTHEME=[{k:'CA',lab:'Annullamento abbonamento',col:'var(--n)'},{k:'CH',lab:'Addebito non autorizzato / non riconosciuto',col:'var(--warn)'},{k:'RE',lab:'Richieste di reso / rimborso',col:'var(--m)'},{k:'SH',lab:'Spedizione / consegna',col:'var(--u)'},{k:'OT',lab:'Altro (spam, interni, domande)',col:'var(--muted)'}];
 function pit(x){return (Math.round(x*10)/10).toString().replace('.',',')+'%';}
@@ -866,12 +869,12 @@ function rngTxt(s){return (s.from||s.to)?((s.from?isoLabF(s.from):'inizio')+' �
 
 /* EMAIL */
 const EMAILF={gran:'day',from:'',to:''};
-function emailRows(){return EMAILDAY.map(r=>({iso:ddmmToIso(r.d),CA:r.CA,CH:r.CH,RE:r.RE,SH:r.SH,OT:r.OT}));}
-function renderEmail(){const rows=emailRows();const inr=rows.filter(r=>inR(r.iso,EMAILF.from,EMAILF.to));
+function emailRows(){var src=(EMAILLIVE&&EMAILLIVE.days&&EMAILLIVE.days.length)?EMAILLIVE.days:EMAILDAY;return src.map(function(r){return {iso:ddmmToIso(r.d),CA:r.CA||0,CH:r.CH||0,RE:r.RE||0,SH:r.SH||0,OT:r.OT||0};});}
+function renderEmail(){const rows=emailRows();(function(){var all=emailRows();var tt=all.reduce(function(a,r){return a+r.CA+r.CH+r.RE+r.SH+r.OT;},0);var ds=all.map(function(r){return r.iso;}).filter(Boolean).sort();var te=document.getElementById('emailTot');if(te)te.textContent=tt.toLocaleString('it-IT');var rg=document.getElementById('emailRange');if(rg&&ds.length)rg.textContent='dal '+isoLab(ds[0])+' al '+isoLab(ds[ds.length-1]);var up=document.getElementById('emailUpd');if(up)up.textContent=(EMAILLIVE&&EMAILLIVE.updated)?EMAILLIVE.updated:'snapshot 08/08/2026';})();const inr=rows.filter(r=>inR(r.iso,EMAILF.from,EMAILF.to));
   const tot={CA:0,CH:0,RE:0,SH:0,OT:0};inr.forEach(r=>EMTHEME.forEach(t=>tot[t.k]+=r[t.k]));
   const N=EMTHEME.reduce((s,t)=>s+tot[t.k],0),pc=v=>N?v/N*100:0;
   document.getElementById('emailKpis').innerHTML=
-    kpiCard('Email nel periodo',N.toLocaleString('it-IT'),(EMAILF.from||EMAILF.to)?'periodo filtrato':'04/07 → 08/08')+
+    kpiCard('Email nel periodo',N.toLocaleString('it-IT'),(EMAILF.from||EMAILF.to)?'periodo filtrato':((EMAILLIVE&&EMAILLIVE.days&&EMAILLIVE.days.length)?('dal '+EMAILLIVE.days[0].d+' al '+EMAILLIVE.days[EMAILLIVE.days.length-1].d):'04/07 → 08/08'))+
     kpiCard('Annullamento',pit(pc(tot.CA)),tot.CA.toLocaleString('it-IT')+' email','var(--n)')+
     kpiCard('Addebito non autoriz.',pit(pc(tot.CH)),tot.CH.toLocaleString('it-IT')+' email','var(--warn)')+
     kpiCard('Reso / rimborso',pit(pc(tot.RE)),tot.RE.toLocaleString('it-IT')+' email','var(--m)');
