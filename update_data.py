@@ -14,7 +14,7 @@
 # lanciare il workflow a mano passando lookback_days piu' grande.
 #
 # Eseguito da GitHub Actions. Secret richiesti: ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN.
-import json, os, re, urllib.request, urllib.parse, urllib.error
+import json, os, re, time, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -70,6 +70,43 @@ def classify_theme(subject):
     return 'OT'
 
 
+# Per gli oggetti generici (tema OT dall'oggetto) si legge il CORPO dell'email
+# e si prova a riclassificarla dal contenuto.
+BODY_RULES = [
+    ('CH', re.compile(r'unauthor|not authori|did ?n.?t authori|did ?n.?t order|didn.?t order|never ordered|'
+                      r'fraud|scam|without my (permission|consent)|charged.*without|why.*charg|double charg|'
+                      r'dispute|unrecogni|charged again|took .*money|stole|not recogni', re.I)),
+    ('CA', re.compile(r'cancel|\bstop\b|no longer|no further|do ?n.?t want|does ?n.?t want|end .*subscription|'
+                      r'unsubscrib|no more|remove .*subscription|opt out|annull|disdett|non voglio|not satisfied|autoship', re.I)),
+    ('RE', re.compile(r'return|refund|money back|send .*back|does ?n.?t work|not work|did ?n.?t work|'
+                      r'want .*refund|get .*refund|rimbors|reso', re.I)),
+    ('SH', re.compile(r'where.?s my|where is|not received|has ?n.?t arrived|have ?n.?t received|tracking|'
+                      r'\btrack\b|deliver|when will .*(arrive|ship|come)|not arrived|still waiting', re.I)),
+]
+
+def classify_body(text):
+    s = text or ''
+    for k, rx in BODY_RULES:
+        if rx.search(s):
+            return k
+    return None
+
+
+def ticket_body(token, ticket_id):
+    """Testo dei messaggi in ARRIVO (snippet) di un ticket, per classificare dal contenuto."""
+    if not ticket_id:
+        return ''
+    try:
+        j = zoho_get("/tickets/" + str(ticket_id) + "/conversations", {"limit": "8"}, token)
+    except Exception:
+        return ''
+    parts = []
+    for c in (j.get("data") or []):
+        if c.get("direction") == "in":
+            parts.append(c.get("summary") or '')
+    return ' '.join(parts)
+
+
 def get_token():
     data = urllib.parse.urlencode({
         "refresh_token": os.environ["ZOHO_REFRESH_TOKEN"],
@@ -87,16 +124,21 @@ def get_token():
 
 def zoho_get(path, params, token):
     url = DESK + path + "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={
-        "Authorization": "Zoho-oauthtoken " + token, "orgId": ORG_ID})
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            raw = r.read()
-    except urllib.error.HTTPError as e:
-        if e.code == 204:
-            return {"data": []}
-        raise
-    return json.loads(raw) if raw.strip() else {"data": []}
+    for attempt in range(4):
+        req = urllib.request.Request(url, headers={
+            "Authorization": "Zoho-oauthtoken " + token, "orgId": ORG_ID})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read()
+            return json.loads(raw) if raw.strip() else {"data": []}
+        except urllib.error.HTTPError as e:
+            if e.code == 204:
+                return {"data": []}
+            if e.code == 429 and attempt < 3:
+                time.sleep(2 * (attempt + 1))
+                continue
+            raise
+    return {"data": []}
 
 
 def iso(dt):
@@ -151,9 +193,10 @@ def fetch_created(token, start_utc, end_utc):
     return out
 
 
-def bucket_email(tickets, target_dates):
+def bucket_email(tickets, target_dates, token):
     """Ritorna {date: {CA,CH,RE,SH,OT}} per le date in target_dates,
-    assegnando ogni email al giorno di CREAZIONE (fuso Europe/Rome)."""
+    assegnando ogni email al giorno di CREAZIONE (fuso Europe/Rome).
+    Il tema si assegna dall'OGGETTO; per gli oggetti generici (OT) si legge il CORPO."""
     tset = set(target_dates)
     keys = ('CA', 'CH', 'RE', 'SH', 'OT')
     buckets = {d: {k: 0 for k in keys} for d in target_dates}
@@ -170,7 +213,12 @@ def bucket_email(tickets, target_dates):
         ld = cutc.astimezone(TZ_LOCAL).date()
         if ld not in tset:
             continue
-        buckets[ld][classify_theme(subj)] += 1
+        k = classify_theme(subj)
+        if k == 'OT':
+            kb = classify_body(subj + ' ' + ticket_body(token, t.get("id")))
+            if kb:
+                k = kb
+        buckets[ld][k] += 1
     return buckets
 
 
@@ -182,7 +230,7 @@ def compute_email(token, now_local):
     start_utc = start_local.astimezone(UTC)
     end_utc = datetime.now(UTC)
     tickets = fetch_created(token, start_utc, end_utc)
-    return bucket_email(tickets.values(), targets)
+    return bucket_email(tickets.values(), targets, token)
 
 
 def agent_tz(assignee_id):
