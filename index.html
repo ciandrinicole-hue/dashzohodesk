@@ -292,6 +292,18 @@
     <div id="finTrend" style="margin-top:12px"></div>
   </div>
 
+  <div class="card" style="margin-top:14px">
+    <div class="cb-sub-head" style="margin-bottom:2px">
+      <div>
+        <h3 style="margin-bottom:2px">Hard decline &amp; carrelli abbandonati</h3>
+        <p class="chart-sub" style="margin:0">CheckoutChamp · ultimi 30 giorni · <span id="ccxUpd">—</span></p>
+      </div>
+    </div>
+    <section class="grid kpis" id="ccxBody" style="margin-top:12px"></section>
+    <div id="ccxChart" style="margin-top:6px"></div>
+    <p class="note" id="ccxNote"></p>
+  </div>
+
   </div>
 
   <div class="page" id="pg-subs">
@@ -621,7 +633,7 @@ const CT={
 };
 const MATTIA="https://mattiapaganelli.github.io/meta-slack-reporter/numipet/data.json";
 const RECYCLE_SHEET="https://docs.google.com/spreadsheets/d/1nCGPy98iufGamZdeY75PT8hgjWlNdW2fG1BG4x5FCyI/edit?gid=1878000433";
-let FATM=null, FATD=null, FATLAST=null, FIN=null, REB=null;
+let FATM=null, FATD=null, FATLAST=null, FIN=null, REB=null, CCX=null;
 const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
 const MONM={'01':'Gen','02':'Feb','03':'Mar','04':'Apr','05':'Mag','06':'Giu','07':'Lug','08':'Ago','09':'Set','10':'Ott','11':'Nov','12':'Dic'};
 function loadFatturato(){
@@ -635,6 +647,18 @@ function loadFatturato(){
     FIN={cur:j.currency_symbol||'$',net_mrr:pr.net_mrr,gross_mrr:pr.gross_mrr,margin:pr.margin_pct,subs:t.active_subscribers,
       loss:j.mixed.loss_rate_combined_pct,disp:j.mixed.disputes||{},refs:j.mixed.refunds||{},dun:j.mixed.dunning||{},
       incMese:lm?Math.round(f[lm]):null,incMeseLbl:lm};
+    // Hard decline & carrelli abbandonati (CheckoutChamp) — popolati solo se il feed espone questi campi
+    const _norm=o=>{if(!o||typeof o!=='object')return null;
+      const daily=((o.daily||o.days||[])).map(x=>({date:x.date||x.d||'',n:(x.n!=null?x.n:(x.count!=null?x.count:(x.value!=null?x.value:0)))})).filter(x=>x.date).sort((a,b)=>a.date<b.date?-1:1);
+      let tot=(o.total_30d!=null?o.total_30d:(o.count_30d!=null?o.count_30d:(o.last_30d_count!=null?o.last_30d_count:(o.total!=null?o.total:null))));
+      if(tot==null&&daily.length)tot=daily.slice(-30).reduce((s,x)=>s+x.n,0);
+      let prev=(o.prev_30d!=null?o.prev_30d:(o.previous_30d!=null?o.previous_30d:null));
+      if(prev==null&&daily.length>=60)prev=daily.slice(-60,-30).reduce((s,x)=>s+x.n,0);
+      if(tot==null&&!daily.length)return null;
+      return{total:tot,prev:prev,daily:daily};};
+    const _hd=_norm(j.mixed.hard_declines||j.mixed.hard_decline||j.mixed.hard_declines_30d);
+    const _ac=_norm(j.mixed.abandoned_carts||j.mixed.abandoned_cart||j.mixed.abandoned_checkouts||j.mixed.abandoned_carts_30d);
+    CCX=(_hd||_ac)?{hd:_hd,ac:_ac}:null;
     /* Rinnovi in arrivo (upcoming_rebills). Usa by_day/due_today se la pipeline li fornisce,
        altrimenti li ricava dalla queue (che ora e' tagliata a 100 record => copertura parziale). */
     const ur=j.mixed.upcoming_rebills||{}; const q=ur.queue||[];
@@ -674,7 +698,7 @@ function renderContest(){
       <div style="display:flex;gap:18px;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums"><span style="color:var(--good)">${p.v} vinte (${pctStr(pv)})</span><span style="color:var(--n)">${p.p} perse (${pctStr(pp)})</span><span style="color:var(--muted)">${p.a} aperte</span></div>
     </div>`;
   }).join('');
-  renderFinanza();renderPctSeries();
+  renderFinanza();renderCCX();renderPctSeries();
   document.getElementById('cbNote').innerHTML=`<b>Fonti.</b> Contestazioni dal foglio \u00abdispute 2026\u00bb (tab Contestazioni USA + USA/conti ita): vinte = vinta+annullata, perse = persa+rimborsata, aperte = vuoto+in lavorazione. Per \u00abconti ita\u00bb le vinte/perse sono a livello conto (aggregato). <b>Fatturato</b> live dalla dashboard di Mattia (incassato CheckoutChamp), aggiornato quando gira la sua pipeline. Denominatore = fatturato <b>Numipet</b> (Mattia). Copertura da met\u00e0 gennaio al ${FATLAST||'\u2014'}: Gennaio e ultimo mese parziali. Nelle viste <b>Settimana/Giorno</b> le contestazioni sono solo USA (conti ita \u00e8 tracciato solo per mese).`;
 }
 function isoWK(iso){const p=iso.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]));const wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
@@ -714,6 +738,32 @@ function renderFinanza(){
   const d=FIN.disp||{},rf=FIN.refs||{},du=FIN.dun||{};
   document.getElementById('finNote').innerHTML=`<b>Ultimi 30 giorni.</b> Dispute ${d.last_30d_count||0} (${mm(d.last_30d_amount)}) · Rimborsi ${rf.last_30d_count||0} (${mm(rf.last_30d_amount)}) · A rischio dunning ${du.count||0} (${mm(du.amount_at_risk)}). <b>Fonte:</b> dashboard Subscription Health di Mattia (CheckoutChamp), live.`;
   document.getElementById('finUpd').textContent='live';
+}
+function renderCCX(){
+  const body=document.getElementById('ccxBody'); if(!body) return;
+  const chart=document.getElementById('ccxChart'), note=document.getElementById('ccxNote'), upd=document.getElementById('ccxUpd');
+  const hd=CCX&&CCX.hd, ac=CCX&&CCX.ac;
+  if(!hd&&!ac){
+    body.innerHTML='<div class="card" style="grid-column:1/-1"><p class="chart-sub" style="margin:0">In attesa dei dati da CheckoutChamp. La sezione si popolerà automaticamente quando il feed di Mattia includerà i campi <code>hard_declines</code> e <code>abandoned_carts</code> dentro <code>mixed</code>.</p></div>';
+    if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> feed <code>data.json</code> di Mattia (CheckoutChamp).'; if(upd)upd.textContent='in attesa';
+    return;
+  }
+  const nf=v=>Number(v||0).toLocaleString('it-IT');
+  const tile=(lab,o,col)=>{
+    const val=(o&&o.total!=null)?nf(o.total):'—';
+    const tb=(o&&o.total!=null&&o.prev!=null)?trendBadge(o.total,o.prev,false):'';
+    return '<div class="card kpi"><h3>'+lab+'</h3><div class="big" style="font-size:clamp(24px,3.4vw,36px);color:'+col+'">'+val+tb+'</div><div class="sub">ultimi 30 giorni'+((o&&o.prev!=null)?' · prec. '+nf(o.prev):'')+'</div></div>';
+  };
+  body.innerHTML=tile('Hard decline',hd,'#ef6b6b')+tile('Carrelli abbandonati',ac,'var(--warn)');
+  const barBlock=(title,o,col)=>{
+    if(!o||!o.daily||!o.daily.length)return '';
+    const rows=o.daily.slice(-30);const mx=Math.max(...rows.map(d=>d.n),1);
+    return '<div style="margin-top:14px"><p class="chart-sub" style="margin:0 0 8px">'+title+' — per giorno</p>'+
+      rows.map(d=>'<div class="rbar-row"><div class="lab">'+d.date.slice(8,10)+'/'+d.date.slice(5,7)+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.n/mx*100).toFixed(1)+'%;background:'+col+'"></div></div><div class="rbar-val">'+nf(d.n)+'</div></div>').join('')+'</div>';
+  };
+  if(chart)chart.innerHTML=barBlock('Hard decline',hd,'#ef6b6b')+barBlock('Carrelli abbandonati',ac,'var(--warn)');
+  if(note)note.innerHTML='<b>Fonte:</b> feed <code>data.json</code> di Mattia (CheckoutChamp), campi <code>mixed.hard_declines</code> e <code>mixed.abandoned_carts</code>. Un aumento è negativo (freccia rossa verso l\'alto).';
+  if(upd)upd.textContent='live';
 }
 function renderRebills(){
   const k=document.getElementById('rebKpis'); if(!k) return;
