@@ -296,7 +296,11 @@
     <div class="cb-sub-head" style="margin-bottom:2px">
       <div>
         <h3 style="margin-bottom:2px">Hard decline &amp; carrelli abbandonati</h3>
-        <p class="chart-sub" style="margin:0">CheckoutChamp · ultimi 30 giorni · <span id="ccxUpd">—</span></p>
+        <p class="chart-sub" style="margin:0">CheckoutChamp · <span id="ccxUpd">—</span></p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <select id="ccxMese" aria-label="Mese" style="display:none"></select>
+        <select id="ccxAnno" aria-label="Anno" style="display:none"></select>
       </div>
     </div>
     <section class="grid kpis" id="ccxBody" style="margin-top:12px"></section>
@@ -633,7 +637,50 @@ const CT={
 };
 const MATTIA="https://mattiapaganelli.github.io/meta-slack-reporter/numipet/data.json";
 const RECYCLE_SHEET="https://docs.google.com/spreadsheets/d/1nCGPy98iufGamZdeY75PT8hgjWlNdW2fG1BG4x5FCyI/edit?gid=1878000433";
-let FATM=null, FATD=null, FATLAST=null, FIN=null, REB=null, CCX=null;
+let FATM=null, FATD=null, FATLAST=null, FIN=null, REB=null;
+/* ==== Hard decline & carrelli abbandonati (CheckoutChamp via Apps Script) ====
+   Foglio metriche SOLO-CONTEGGI (nessun dato cliente), colonne:
+   Data | Hard decline | Carrelli abbandonati | Scope | Aggiornato
+   Compila CCX_SHEET_ID / CCX_GID con l'ID e il gid del foglio metriche. */
+const CCX_SHEET_ID='';   // <-- ID del foglio metriche (dallo script: >>> URL foglio metriche)
+const CCX_GID='0';       // <-- gid del tab (dallo script: >>> gid tab)
+const CCX_MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let CCXROWS=null;        // [{iso, decl, part}]
+let CCXUPD='';
+let CCXF={year:null, month:null}; // month: 1-12 oppure 'all' (tutto l'anno)
+function _ccxCsv(text){
+  // parser CSV minimale (gestisce virgolette). Ritorna array di righe (array di campi).
+  const out=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else { if(c==='"')q=true; else if(c===','){row.push(f);f='';} else if(c==='\n'){row.push(f);out.push(row);row=[];f='';} else if(c==='\r'){} else f+=c; }
+  }
+  if(f.length||row.length){row.push(f);out.push(row);}
+  return out;
+}
+function loadCCX(){
+  if(!CCX_SHEET_ID){CCXROWS=null;return Promise.resolve();}
+  const url='https://docs.google.com/spreadsheets/d/'+CCX_SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+CCX_GID+'&t='+Date.now();
+  return fetch(url,{cache:'no-store'}).then(r=>r.ok?r.text():null).then(txt=>{
+    if(!txt){CCXROWS=null;return;}
+    const rows=_ccxCsv(txt); if(!rows.length){CCXROWS=null;return;}
+    const head=rows[0].map(s=>String(s).toLowerCase());
+    const iD=head.findIndex(h=>h.indexOf('data')!==-1);
+    const iH=head.findIndex(h=>h.indexOf('decline')!==-1);
+    const iC=head.findIndex(h=>h.indexOf('carrell')!==-1||h.indexOf('abbandon')!==-1);
+    const iU=head.findIndex(h=>h.indexOf('aggiorn')!==-1);
+    const data=[];
+    for(let r=1;r<rows.length;r++){
+      const c=rows[r]; if(!c||!c[iD])continue;
+      const iso=String(c[iD]).trim().slice(0,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(iso))continue;
+      data.push({iso:iso, decl:parseInt(c[iH],10)||0, part:parseInt(c[iC],10)||0});
+      if(iU>=0&&c[iU])CCXUPD=String(c[iU]).trim();
+    }
+    data.sort((a,b)=>a.iso<b.iso?-1:1);
+    CCXROWS=data.length?data:null;
+  }).catch(()=>{CCXROWS=null;});
+}
 const money=v=>'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
 const MONM={'01':'Gen','02':'Feb','03':'Mar','04':'Apr','05':'Mag','06':'Giu','07':'Lug','08':'Ago','09':'Set','10':'Ott','11':'Nov','12':'Dic'};
 function loadFatturato(){
@@ -647,18 +694,6 @@ function loadFatturato(){
     FIN={cur:j.currency_symbol||'$',net_mrr:pr.net_mrr,gross_mrr:pr.gross_mrr,margin:pr.margin_pct,subs:t.active_subscribers,
       loss:j.mixed.loss_rate_combined_pct,disp:j.mixed.disputes||{},refs:j.mixed.refunds||{},dun:j.mixed.dunning||{},
       incMese:lm?Math.round(f[lm]):null,incMeseLbl:lm};
-    // Hard decline & carrelli abbandonati (CheckoutChamp) — popolati solo se il feed espone questi campi
-    const _norm=o=>{if(!o||typeof o!=='object')return null;
-      const daily=((o.daily||o.days||[])).map(x=>({date:x.date||x.d||'',n:(x.n!=null?x.n:(x.count!=null?x.count:(x.value!=null?x.value:0)))})).filter(x=>x.date).sort((a,b)=>a.date<b.date?-1:1);
-      let tot=(o.total_30d!=null?o.total_30d:(o.count_30d!=null?o.count_30d:(o.last_30d_count!=null?o.last_30d_count:(o.total!=null?o.total:null))));
-      if(tot==null&&daily.length)tot=daily.slice(-30).reduce((s,x)=>s+x.n,0);
-      let prev=(o.prev_30d!=null?o.prev_30d:(o.previous_30d!=null?o.previous_30d:null));
-      if(prev==null&&daily.length>=60)prev=daily.slice(-60,-30).reduce((s,x)=>s+x.n,0);
-      if(tot==null&&!daily.length)return null;
-      return{total:tot,prev:prev,daily:daily};};
-    const _hd=_norm(j.mixed.hard_declines||j.mixed.hard_decline||j.mixed.hard_declines_30d);
-    const _ac=_norm(j.mixed.abandoned_carts||j.mixed.abandoned_cart||j.mixed.abandoned_checkouts||j.mixed.abandoned_carts_30d);
-    CCX=(_hd||_ac)?{hd:_hd,ac:_ac}:null;
     /* Rinnovi in arrivo (upcoming_rebills). Usa by_day/due_today se la pipeline li fornisce,
        altrimenti li ricava dalla queue (che ora e' tagliata a 100 record => copertura parziale). */
     const ur=j.mixed.upcoming_rebills||{}; const q=ur.queue||[];
@@ -739,31 +774,81 @@ function renderFinanza(){
   document.getElementById('finNote').innerHTML=`<b>Ultimi 30 giorni.</b> Dispute ${d.last_30d_count||0} (${mm(d.last_30d_amount)}) · Rimborsi ${rf.last_30d_count||0} (${mm(rf.last_30d_amount)}) · A rischio dunning ${du.count||0} (${mm(du.amount_at_risk)}). <b>Fonte:</b> dashboard Subscription Health di Mattia (CheckoutChamp), live.`;
   document.getElementById('finUpd').textContent='live';
 }
+function ccxMonthTotals(year,month){ // month 1-12; ritorna {decl,part,days:[{iso,decl,part}]}
+  const days=(CCXROWS||[]).filter(r=>{const y=+r.iso.slice(0,4),m=+r.iso.slice(5,7);return y===year&&m===month;});
+  return {decl:days.reduce((s,r)=>s+r.decl,0),part:days.reduce((s,r)=>s+r.part,0),days:days};
+}
+function ccxYearTotals(year){
+  const rows=(CCXROWS||[]).filter(r=>+r.iso.slice(0,4)===year);
+  const byM={}; rows.forEach(r=>{const m=+r.iso.slice(5,7);(byM[m]||(byM[m]={decl:0,part:0,m:m})); byM[m].decl+=r.decl; byM[m].part+=r.part;});
+  const months=Object.keys(byM).map(k=>byM[k]).sort((a,b)=>a.m-b.m);
+  return {decl:rows.reduce((s,r)=>s+r.decl,0),part:rows.reduce((s,r)=>s+r.part,0),months:months};
+}
+function ccxPopulateSelectors(){
+  const selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
+  if(!selM||!selY||!CCXROWS)return;
+  const years=[...new Set(CCXROWS.map(r=>+r.iso.slice(0,4)))].sort();
+  const last=CCXROWS[CCXROWS.length-1].iso;
+  if(CCXF.year==null)CCXF.year=+last.slice(0,4);
+  if(CCXF.month==null)CCXF.month=+last.slice(5,7);
+  selY.innerHTML=years.map(y=>'<option value="'+y+'"'+(y===CCXF.year?' selected':'')+'>'+y+'</option>').join('');
+  const monthsInYear=[...new Set(CCXROWS.filter(r=>+r.iso.slice(0,4)===CCXF.year).map(r=>+r.iso.slice(5,7)))].sort((a,b)=>a-b);
+  let opts='<option value="all"'+(CCXF.month==='all'?' selected':'')+'>Tutti i mesi</option>';
+  opts+=monthsInYear.map(m=>'<option value="'+m+'"'+(m===CCXF.month?' selected':'')+'>'+CCX_MESI[m-1]+'</option>').join('');
+  selM.innerHTML=opts;
+  selM.style.display=''; selY.style.display='';
+  if(!selM._wired){selM._wired=1;selM.addEventListener('change',function(){CCXF.month=this.value==='all'?'all':+this.value;renderCCX();});}
+  if(!selY._wired){selY._wired=1;selY.addEventListener('change',function(){CCXF.year=+this.value;CCXF.month='all';renderCCX();});}
+}
 function renderCCX(){
   const body=document.getElementById('ccxBody'); if(!body) return;
   const chart=document.getElementById('ccxChart'), note=document.getElementById('ccxNote'), upd=document.getElementById('ccxUpd');
-  const hd=CCX&&CCX.hd, ac=CCX&&CCX.ac;
-  if(!hd&&!ac){
-    body.innerHTML='<div class="card" style="grid-column:1/-1"><p class="chart-sub" style="margin:0">In attesa dei dati da CheckoutChamp. La sezione si popolerà automaticamente quando il feed di Mattia includerà i campi <code>hard_declines</code> e <code>abandoned_carts</code> dentro <code>mixed</code>.</p></div>';
-    if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> feed <code>data.json</code> di Mattia (CheckoutChamp).'; if(upd)upd.textContent='in attesa';
+  const selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
+  if(!CCXROWS||!CCXROWS.length){
+    body.innerHTML='<div class="card" style="grid-column:1/-1"><p class="chart-sub" style="margin:0">In attesa dei dati da CheckoutChamp. Collega il foglio metriche impostando <code>CCX_SHEET_ID</code> nel codice della dashboard (dallo script <code>aggiornaMetricheCC</code>).</p></div>';
+    if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> foglio metriche (Apps Script → CheckoutChamp), aggiornato ogni giorno.'; if(upd)upd.textContent='in attesa';
+    if(selM)selM.style.display='none'; if(selY)selY.style.display='none';
     return;
   }
+  ccxPopulateSelectors();
   const nf=v=>Number(v||0).toLocaleString('it-IT');
-  const tile=(lab,o,col)=>{
-    const val=(o&&o.total!=null)?nf(o.total):'—';
-    const tb=(o&&o.total!=null&&o.prev!=null)?trendBadge(o.total,o.prev,false):'';
-    return '<div class="card kpi"><h3>'+lab+'</h3><div class="big" style="font-size:clamp(24px,3.4vw,36px);color:'+col+'">'+val+tb+'</div><div class="sub">ultimi 30 giorni'+((o&&o.prev!=null)?' · prec. '+nf(o.prev):'')+'</div></div>';
+  const tile=(lab,val,prev,col,sub)=>{
+    const tb=(prev!=null)?trendBadge(val,prev,false):'';
+    return '<div class="card kpi"><h3>'+lab+'</h3><div class="big" style="font-size:clamp(24px,3.4vw,36px);color:'+col+'">'+nf(val)+tb+'</div><div class="sub">'+sub+'</div></div>';
   };
-  body.innerHTML=tile('Hard decline',hd,'#ef6b6b')+tile('Carrelli abbandonati',ac,'var(--warn)');
-  const barBlock=(title,o,col)=>{
-    if(!o||!o.daily||!o.daily.length)return '';
-    const rows=o.daily.slice(-30);const mx=Math.max(...rows.map(d=>d.n),1);
-    return '<div style="margin-top:14px"><p class="chart-sub" style="margin:0 0 8px">'+title+' — per giorno</p>'+
-      rows.map(d=>'<div class="rbar-row"><div class="lab">'+d.date.slice(8,10)+'/'+d.date.slice(5,7)+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.n/mx*100).toFixed(1)+'%;background:'+col+'"></div></div><div class="rbar-val">'+nf(d.n)+'</div></div>').join('')+'</div>';
+  const barBlock=(title,arr,col,labFn)=>{
+    if(!arr.length)return '';
+    const mx=Math.max(...arr.map(d=>d.v),1);
+    return '<div style="margin-top:14px"><p class="chart-sub" style="margin:0 0 8px">'+title+'</p>'+
+      arr.map(d=>'<div class="rbar-row"><div class="lab">'+labFn(d)+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.v/mx*100).toFixed(1)+'%;background:'+col+'"></div></div><div class="rbar-val">'+nf(d.v)+'</div></div>').join('')+'</div>';
   };
-  if(chart)chart.innerHTML=barBlock('Hard decline',hd,'#ef6b6b')+barBlock('Carrelli abbandonati',ac,'var(--warn)');
-  if(note)note.innerHTML='<b>Fonte:</b> feed <code>data.json</code> di Mattia (CheckoutChamp), campi <code>mixed.hard_declines</code> e <code>mixed.abandoned_carts</code>. Un aumento è negativo (freccia rossa verso l\'alto).';
-  if(upd)upd.textContent='live';
+  const RED='#ef6b6b', GOLD='var(--warn)';
+  if(CCXF.month==='all'){
+    const cur=ccxYearTotals(CCXF.year), prev=ccxYearTotals(CCXF.year-1);
+    const pv=prev.months.length?prev:null;
+    body.innerHTML=
+      tile('Hard decline',cur.decl,pv?pv.decl:null,RED,'anno '+CCXF.year+(pv?' · prec. '+nf(pv.decl):''))+
+      tile('Carrelli abbandonati',cur.part,pv?pv.part:null,GOLD,'anno '+CCXF.year+(pv?' · prec. '+nf(pv.part):''));
+    const mLab=d=>CCX_MESI[d.m-1].slice(0,3);
+    if(chart)chart.innerHTML=
+      barBlock('Hard decline — per mese '+CCXF.year,cur.months.map(m=>({m:m.m,v:m.decl})),RED,mLab)+
+      barBlock('Carrelli abbandonati — per mese '+CCXF.year,cur.months.map(m=>({m:m.m,v:m.part})),GOLD,mLab);
+  } else {
+    const cur=ccxMonthTotals(CCXF.year,CCXF.month);
+    let py=CCXF.year, pm=CCXF.month-1; if(pm<1){pm=12;py--;}
+    const prev=ccxMonthTotals(py,pm);
+    const hasPrev=prev.days.length>0;
+    const lbl=CCX_MESI[CCXF.month-1]+' '+CCXF.year;
+    body.innerHTML=
+      tile('Hard decline',cur.decl,hasPrev?prev.decl:null,RED,lbl+(hasPrev?' · prec. '+nf(prev.decl):''))+
+      tile('Carrelli abbandonati',cur.part,hasPrev?prev.part:null,GOLD,lbl+(hasPrev?' · prec. '+nf(prev.part):''));
+    const dLab=d=>d.iso.slice(8,10);
+    if(chart)chart.innerHTML=
+      barBlock('Hard decline — '+lbl,cur.days.map(d=>({iso:d.iso,v:d.decl})),RED,dLab)+
+      barBlock('Carrelli abbandonati — '+lbl,cur.days.map(d=>({iso:d.iso,v:d.part})),GOLD,dLab);
+  }
+  if(note)note.innerHTML='<b>Fonte:</b> foglio metriche (Apps Script → CheckoutChamp), conteggi giornalieri. Un aumento è negativo (freccia rossa verso l\'alto).';
+  if(upd)upd.textContent=CCXUPD?('agg. '+CCXUPD):'live';
 }
 function renderRebills(){
   const k=document.getElementById('rebKpis'); if(!k) return;
@@ -868,7 +953,8 @@ function loadData(){
     .then(()=>loadFatturato())
     .then(()=>loadRinnovi())
     .then(()=>loadEmail())
-    .finally(()=>{renderAll();renderContest();renderRebills();try{renderEmail();}catch(e){}if(btn){btn.disabled=false;btn.classList.remove('spin');}});
+    .then(()=>loadCCX())
+    .finally(()=>{renderAll();renderContest();renderRebills();try{renderEmail();}catch(e){}try{renderCCX();}catch(e){}if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
 renderContest();
