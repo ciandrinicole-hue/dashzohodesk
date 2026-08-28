@@ -299,6 +299,7 @@
         <p class="chart-sub" style="margin:0">CheckoutChamp · <span id="ccxUpd">—</span></p>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <select id="ccxGiorno" aria-label="Giorno" style="display:none"></select>
         <select id="ccxMese" aria-label="Mese" style="display:none"></select>
         <select id="ccxAnno" aria-label="Anno" style="display:none"></select>
       </div>
@@ -647,7 +648,7 @@ const CCX_GID='0';       // <-- gid del tab (dallo script: >>> gid tab)
 const CCX_MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 let CCXROWS=null;        // [{iso, decl, part}]
 let CCXUPD='';
-let CCXF={year:null, month:null}; // month: 1-12 oppure 'all' (tutto l'anno)
+let CCXF={year:null, month:null, day:'all'}; // month: 1-12|'all' · day: 1-31|'all'
 function _ccxCsv(text){
   // parser CSV minimale (gestisce virgolette). Ritorna array di righe (array di campi).
   const out=[]; let row=[], f='', q=false;
@@ -785,29 +786,42 @@ function ccxYearTotals(year){
   return {decl:rows.reduce((s,r)=>s+r.decl,0),part:rows.reduce((s,r)=>s+r.part,0),months:months};
 }
 function ccxPopulateSelectors(){
-  const selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
-  if(!selM||!selY||!CCXROWS)return;
+  const selG=document.getElementById('ccxGiorno'), selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
+  if(!selM||!selY||!selG||!CCXROWS)return;
   const years=[...new Set(CCXROWS.map(r=>+r.iso.slice(0,4)))].sort();
   const last=CCXROWS[CCXROWS.length-1].iso;
   if(CCXF.year==null)CCXF.year=+last.slice(0,4);
   if(CCXF.month==null)CCXF.month=+last.slice(5,7);
+  // Anno
   selY.innerHTML=years.map(y=>'<option value="'+y+'"'+(y===CCXF.year?' selected':'')+'>'+y+'</option>').join('');
+  // Mese
   const monthsInYear=[...new Set(CCXROWS.filter(r=>+r.iso.slice(0,4)===CCXF.year).map(r=>+r.iso.slice(5,7)))].sort((a,b)=>a-b);
-  let opts='<option value="all"'+(CCXF.month==='all'?' selected':'')+'>Tutti i mesi</option>';
-  opts+=monthsInYear.map(m=>'<option value="'+m+'"'+(m===CCXF.month?' selected':'')+'>'+CCX_MESI[m-1]+'</option>').join('');
-  selM.innerHTML=opts;
+  let mo='<option value="all"'+(CCXF.month==='all'?' selected':'')+'>Tutti i mesi</option>';
+  mo+=monthsInYear.map(m=>'<option value="'+m+'"'+(m===CCXF.month?' selected':'')+'>'+CCX_MESI[m-1]+'</option>').join('');
+  selM.innerHTML=mo;
+  // Giorno (solo se un mese specifico è selezionato)
+  if(CCXF.month==='all'){
+    selG.style.display='none'; CCXF.day='all';
+  } else {
+    const daysInMonth=CCXROWS.filter(r=>+r.iso.slice(0,4)===CCXF.year&&+r.iso.slice(5,7)===CCXF.month).map(r=>+r.iso.slice(8,10)).sort((a,b)=>a-b);
+    if(CCXF.day!=='all'&&daysInMonth.indexOf(CCXF.day)===-1)CCXF.day='all';
+    let go='<option value="all"'+(CCXF.day==='all'?' selected':'')+'>Tutti i giorni</option>';
+    go+=daysInMonth.map(d=>'<option value="'+d+'"'+(d===CCXF.day?' selected':'')+'>'+String(d).padStart(2,'0')+' '+CCX_MESI[CCXF.month-1].slice(0,3)+'</option>').join('');
+    selG.innerHTML=go; selG.style.display='';
+  }
   selM.style.display=''; selY.style.display='';
-  if(!selM._wired){selM._wired=1;selM.addEventListener('change',function(){CCXF.month=this.value==='all'?'all':+this.value;renderCCX();});}
-  if(!selY._wired){selY._wired=1;selY.addEventListener('change',function(){CCXF.year=+this.value;CCXF.month='all';renderCCX();});}
+  if(!selG._wired){selG._wired=1;selG.addEventListener('change',function(){CCXF.day=this.value==='all'?'all':+this.value;renderCCX();});}
+  if(!selM._wired){selM._wired=1;selM.addEventListener('change',function(){CCXF.month=this.value==='all'?'all':+this.value;CCXF.day='all';renderCCX();});}
+  if(!selY._wired){selY._wired=1;selY.addEventListener('change',function(){CCXF.year=+this.value;CCXF.month='all';CCXF.day='all';renderCCX();});}
 }
 function renderCCX(){
   const body=document.getElementById('ccxBody'); if(!body) return;
   const chart=document.getElementById('ccxChart'), note=document.getElementById('ccxNote'), upd=document.getElementById('ccxUpd');
-  const selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
+  const selG=document.getElementById('ccxGiorno'), selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
   if(!CCXROWS||!CCXROWS.length){
     body.innerHTML='<div class="card" style="grid-column:1/-1"><p class="chart-sub" style="margin:0">In attesa dei dati da CheckoutChamp. Collega il foglio metriche impostando <code>CCX_SHEET_ID</code> nel codice della dashboard (dallo script <code>aggiornaMetricheCC</code>).</p></div>';
     if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> foglio metriche (Apps Script → CheckoutChamp), aggiornato ogni giorno.'; if(upd)upd.textContent='in attesa';
-    if(selM)selM.style.display='none'; if(selY)selY.style.display='none';
+    if(selG)selG.style.display='none'; if(selM)selM.style.display='none'; if(selY)selY.style.display='none';
     return;
   }
   ccxPopulateSelectors();
@@ -833,6 +847,28 @@ function renderCCX(){
     if(chart)chart.innerHTML=
       barBlock('Hard decline — per mese '+CCXF.year,cur.months.map(m=>({m:m.m,v:m.decl})),RED,mLab)+
       barBlock('Carrelli abbandonati — per mese '+CCXF.year,cur.months.map(m=>({m:m.m,v:m.part})),GOLD,mLab);
+  } else if(CCXF.day!=='all'){
+    // vista GIORNO singolo
+    const iso=CCXF.year+'-'+String(CCXF.month).padStart(2,'0')+'-'+String(CCXF.day).padStart(2,'0');
+    const cur=(CCXROWS||[]).filter(r=>r.iso===iso)[0]||{decl:0,part:0};
+    const pd=new Date(Date.UTC(CCXF.year,CCXF.month-1,CCXF.day)-864e5).toISOString().slice(0,10);
+    const prev=(CCXROWS||[]).filter(r=>r.iso===pd)[0];
+    const lbl=String(CCXF.day).padStart(2,'0')+' '+CCX_MESI[CCXF.month-1]+' '+CCXF.year;
+    body.innerHTML=
+      tile('Hard decline',cur.decl,prev?prev.decl:null,RED,lbl+(prev?' · giorno prec. '+nf(prev.decl):''))+
+      tile('Carrelli abbandonati',cur.part,prev?prev.part:null,GOLD,lbl+(prev?' · giorno prec. '+nf(prev.part):''));
+    // grafico = contesto del mese, con il giorno selezionato evidenziato
+    const mon=ccxMonthTotals(CCXF.year,CCXF.month);
+    const dLab=d=>d.iso.slice(8,10);
+    const barSel=(title,arr,col)=>{
+      if(!arr.length)return '';
+      const mx=Math.max(...arr.map(d=>d.v),1);
+      return '<div style="margin-top:14px"><p class="chart-sub" style="margin:0 0 8px">'+title+'</p>'+
+        arr.map(d=>{const on=d.iso===iso;return '<div class="rbar-row" style="'+(on?'font-weight:700':'opacity:.55')+'"><div class="lab">'+dLab(d)+'</div><div class="rbar-track"><div class="rbar-fill" style="width:'+(d.v/mx*100).toFixed(1)+'%;background:'+col+(on?'':';opacity:.6')+'"></div></div><div class="rbar-val">'+nf(d.v)+'</div></div>';}).join('')+'</div>';
+    };
+    if(chart)chart.innerHTML=
+      barSel('Hard decline — '+CCX_MESI[CCXF.month-1]+' '+CCXF.year+' (giorno evidenziato)',mon.days.map(d=>({iso:d.iso,v:d.decl})),RED)+
+      barSel('Carrelli abbandonati — '+CCX_MESI[CCXF.month-1]+' '+CCXF.year+' (giorno evidenziato)',mon.days.map(d=>({iso:d.iso,v:d.part})),GOLD);
   } else {
     const cur=ccxMonthTotals(CCXF.year,CCXF.month);
     let py=CCXF.year, pm=CCXF.month-1; if(pm<1){pm=12;py--;}
