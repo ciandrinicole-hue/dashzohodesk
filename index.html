@@ -292,23 +292,26 @@
     <div id="finTrend" style="margin-top:12px"></div>
   </div>
 
-  <div class="card" style="margin-top:14px">
-    <div class="cb-sub-head" style="margin-bottom:2px">
-      <div>
-        <h3 style="margin-bottom:2px">Hard decline &amp; carrelli abbandonati</h3>
-        <p class="chart-sub" style="margin:0">CheckoutChamp · <span id="ccxUpd">—</span></p>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <select id="ccxGiorno" aria-label="Giorno" style="display:none"></select>
-        <select id="ccxMese" aria-label="Mese" style="display:none"></select>
-        <select id="ccxAnno" aria-label="Anno" style="display:none"></select>
-      </div>
-    </div>
-    <section class="grid kpis" id="ccxBody" style="margin-top:12px"></section>
-    <div id="ccxChart" style="margin-top:6px"></div>
-    <p class="note" id="ccxNote"></p>
   </div>
 
+  <div class="page" id="pg-declines">
+  <div class="cb-head">
+    <div>
+      <h2>Hard decline &amp; carrelli abbandonati</h2>
+      <p>pagamenti rifiutati e checkout non completati · NuumiPet · CheckoutChamp · <span id="ccxUpd">—</span></p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <select id="ccxGiorno" aria-label="Giorno" style="display:none"></select>
+      <select id="ccxMese" aria-label="Mese" style="display:none"></select>
+      <select id="ccxAnno" aria-label="Anno" style="display:none"></select>
+    </div>
+  </div>
+  <section class="grid kpis" id="ccxBody"></section>
+  <section class="grid kpis" id="ccxStats" style="margin-top:12px"></section>
+  <div class="card" style="margin-top:14px">
+    <div id="ccxChart"></div>
+    <p class="note" id="ccxNote"></p>
+  </div>
   </div>
 
   <div class="page" id="pg-subs">
@@ -817,10 +820,11 @@ function ccxPopulateSelectors(){
 function renderCCX(){
   const body=document.getElementById('ccxBody'); if(!body) return;
   const chart=document.getElementById('ccxChart'), note=document.getElementById('ccxNote'), upd=document.getElementById('ccxUpd');
+  const stats=document.getElementById('ccxStats');
   const selG=document.getElementById('ccxGiorno'), selM=document.getElementById('ccxMese'), selY=document.getElementById('ccxAnno');
   if(!CCXROWS||!CCXROWS.length){
     body.innerHTML='<div class="card" style="grid-column:1/-1"><p class="chart-sub" style="margin:0">In attesa dei dati da CheckoutChamp. Collega il foglio metriche impostando <code>CCX_SHEET_ID</code> nel codice della dashboard (dallo script <code>aggiornaMetricheCC</code>).</p></div>';
-    if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> foglio metriche (Apps Script → CheckoutChamp), aggiornato ogni giorno.'; if(upd)upd.textContent='in attesa';
+    if(stats)stats.innerHTML=''; if(chart)chart.innerHTML=''; if(note)note.innerHTML='<b>Fonte prevista:</b> foglio metriche (Apps Script → CheckoutChamp), aggiornato ogni giorno.'; if(upd)upd.textContent='in attesa';
     if(selG)selG.style.display='none'; if(selM)selM.style.display='none'; if(selY)selY.style.display='none';
     return;
   }
@@ -883,7 +887,30 @@ function renderCCX(){
       barBlock('Hard decline — '+lbl,cur.days.map(d=>({iso:d.iso,v:d.decl})),RED,dLab)+
       barBlock('Carrelli abbandonati — '+lbl,cur.days.map(d=>({iso:d.iso,v:d.part})),GOLD,dLab);
   }
-  if(note)note.innerHTML='<b>Fonte:</b> foglio metriche (Apps Script → CheckoutChamp), conteggi giornalieri. Un aumento è negativo (freccia rossa verso l\'alto).';
+  // Riepilogo del periodo selezionato (media/giorno e picchi)
+  if(stats){
+    const inScope=(CCXROWS||[]).filter(function(r){
+      var y=+r.iso.slice(0,4),m=+r.iso.slice(5,7),d=+r.iso.slice(8,10);
+      if(y!==CCXF.year)return false;
+      if(CCXF.month!=='all'&&m!==CCXF.month)return false;
+      if(CCXF.month!=='all'&&CCXF.day!=='all'&&d!==CCXF.day)return false;
+      return true;
+    });
+    if(inScope.length>1){
+      var nd=inScope.length;
+      var sP=inScope.reduce(function(s,r){return s+r.part;},0), sD=inScope.reduce(function(s,r){return s+r.decl;},0);
+      var wP=inScope.reduce(function(a,r){return r.part>(a?a.part:-1)?r:a;},null);
+      var wD=inScope.reduce(function(a,r){return r.decl>(a?a.decl:-1)?r:a;},null);
+      var dfmt=function(iso){return iso.slice(8,10)+'/'+iso.slice(5,7);};
+      var stile=function(lab,val,sub,col){return '<div class="card kpi"><h3>'+lab+'</h3><div class="big" style="font-size:clamp(20px,2.8vw,30px);color:'+(col||'inherit')+'">'+val+'</div><div class="sub">'+sub+'</div></div>';};
+      stats.innerHTML=
+        stile('Media carrelli / giorno',nf(Math.round(sP/nd)),'su '+nd+' giorni',GOLD)+
+        stile('Media hard decline / giorno',nf(Math.round(sD/nd)),'su '+nd+' giorni',RED)+
+        stile('Picco carrelli',nf(wP?wP.part:0),wP?('il '+dfmt(wP.iso)):'',GOLD)+
+        stile('Picco hard decline',nf(wD?wD.decl:0),wD?('il '+dfmt(wD.iso)):'',RED);
+    } else stats.innerHTML='';
+  }
+  if(note)note.innerHTML='<b>Fonte:</b> foglio metriche (Apps Script → CheckoutChamp), conteggi giornalieri. Hard decline = pagamenti rifiutati · Carrelli abbandonati = checkout iniziati e non completati. Un aumento è negativo (freccia rossa verso l\'alto).';
   if(upd)upd.textContent=CCXUPD?('agg. '+CCXUPD):'live';
 }
 function renderRebills(){
@@ -1131,10 +1158,10 @@ function renderNF(){const card=document.getElementById('nfCard');if(!card)return
   if(sEl)sEl.textContent='ticket gestiti · nuovi/follow-up + repliche del cliente per '+granLab(TGRAN);}
 
 /* NAV / ROUTER */
-const PAGES=[['index','Indice'],['home','Riepilogo'],['ticket','Ticket'],['email','Analisi email'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['contest','Contestazioni'],['refund','Rimborsi USA']];
+const PAGES=[['index','Indice'],['home','Riepilogo'],['ticket','Ticket'],['email','Analisi email'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['declines','Decline & carrelli'],['contest','Contestazioni'],['refund','Rimborsi USA']];
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
   document.querySelectorAll('#appnav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));window.scrollTo(0,0);
-  if(id==='index')renderIndex();if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='refund')renderRefund();}
+  if(id==='index')renderIndex();if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='declines'){try{renderCCX();}catch(e){}}if(id==='refund')renderRefund();}
 document.getElementById('appnav').innerHTML=PAGES.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='index'?' class="on"':'')+'>'+p[1]+'</button>').join('');
 document.getElementById('appnav').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)showPage(b.dataset.p);});
 
