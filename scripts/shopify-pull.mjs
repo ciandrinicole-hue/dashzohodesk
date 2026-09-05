@@ -17,7 +17,7 @@ const NEGOZIO = process.env.SHOPIFY_STORE;          // es. evsedm-j1.myshopify.c
 const TOKEN   = process.env.SHOPIFY_TOKEN;          // Admin API access token
 const DA      = process.env.DAL || '2026-01-01';
 const USCITA  = process.env.USCITA || 'dati/shopify-nuumipet.json';
-const API     = '2025-07';
+const API     = '2026-01';          // versione supportata dell'Admin API
 
 if (!NEGOZIO || !TOKEN) {
   console.error('Mancano i secret SHOPIFY_STORE o SHOPIFY_TOKEN.');
