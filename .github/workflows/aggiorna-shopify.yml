@@ -1,0 +1,66 @@
+# Aggiorna da sola i numeri Shopify della dashboard NuumiPet.
+#
+# Gira ogni mattina alle 6:00 italiane e si puo' lanciare a mano dalla
+# scheda Actions con "Run workflow".
+#
+# Le credenziali stanno nei Secrets del repository (Settings > Secrets and
+# variables > Actions) e non compaiono mai nella pagina pubblicata: il
+# workflow gira sui server di GitHub, la pagina legge solo il file JSON
+# di numeri aggregati che questo lavoro produce.
+#
+#   SHOPIFY_STORE   evsedm-j1.myshopify.com
+#   SHOPIFY_TOKEN   token di una app privata con permesso di lettura su
+#                   ordini e analytics (read_orders, read_analytics)
+
+name: Aggiorna dati Shopify
+
+on:
+  schedule:
+    - cron: '0 4 * * *'      # 04:00 UTC = 06:00 in Italia (ora legale)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aggiorna-shopify
+  cancel-in-progress: false
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prendi i dati da Shopify
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_TOKEN: ${{ secrets.SHOPIFY_TOKEN }}
+          DOMINIO_ATTESO: nuumipet.com
+          DAL: '2026-01-01'
+          USCITA: dati/shopify-nuumipet.json
+        run: node scripts/shopify-pull.mjs
+
+      - name: Controlla che non sia finito dentro nulla di personale
+        run: |
+          if grep -Eq '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' dati/shopify-nuumipet.json; then
+            echo "Nel file ci sono indirizzi email: non lo pubblico."
+            exit 1
+          fi
+          echo "Nessun dato personale nel file."
+
+      - name: Salva se e' cambiato qualcosa
+        run: |
+          git config user.name  "aggiornamento automatico"
+          git config user.email "actions@github.com"
+          if git diff --quiet -- dati/shopify-nuumipet.json; then
+            echo "Nessuna novita' da Shopify."
+            exit 0
+          fi
+          git add dati/shopify-nuumipet.json
+          git commit -m "Dati Shopify aggiornati al $(date -u +%d/%m/%Y)"
+          git push
