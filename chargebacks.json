@@ -1,24 +1,24 @@
 {
- "updated": "04/08/2026",
+ "updated": "18/09/2026",
  "scope": "Nuumipet + The Pawesome",
  "total": {
-  "n": 64,
-  "a": 6311.02
+  "n": 106,
+  "a": 10862.27
  },
  "dated": {
-  "n": 55,
-  "a": 5305.51
+  "n": 97,
+  "a": 9856.76
  },
  "byType": [
   {
    "k": "Contestazione",
-   "n": 43,
-   "a": 4338.9
+   "n": 75,
+   "a": 7894.93
   },
   {
    "k": "Frode",
-   "n": 21,
-   "a": 1972.12
+   "n": 31,
+   "a": 2967.34
   }
  ],
  "byReason": [
@@ -26,29 +26,43 @@
    "code": "104",
    "label": "Fraud Card-Absent",
    "type": "Frode",
-   "n": 21,
-   "a": 1972.12
+   "n": 31,
+   "a": 2967.34
   },
   {
    "code": "4853",
    "label": "Defective/Not as Described",
    "type": "Contestazione",
-   "n": 7,
-   "a": 708.12
-  },
-  {
-   "code": "137",
-   "label": "Cancelled",
-   "type": "Contestazione",
-   "n": 5,
-   "a": 603.29
+   "n": 17,
+   "a": 1433.97
   },
   {
    "code": "4837",
    "label": "No Authorization",
    "type": "Contestazione",
-   "n": 4,
-   "a": 483.72
+   "n": 8,
+   "a": 1160.84
+  },
+  {
+   "code": "131",
+   "label": "Not Received",
+   "type": "Contestazione",
+   "n": 9,
+   "a": 1053.2
+  },
+  {
+   "code": "137",
+   "label": "Cancelled",
+   "type": "Contestazione",
+   "n": 9,
+   "a": 1034.29
+  },
+  {
+   "code": "1262",
+   "label": "Paid Other Means",
+   "type": "Contestazione",
+   "n": 5,
+   "a": 615.53
   },
   {
    "code": "133",
@@ -58,11 +72,25 @@
    "a": 390.74
   },
   {
-   "code": "131",
-   "label": "Not Received",
+   "code": "132",
+   "label": "Cancelled Recurring",
    "type": "Contestazione",
    "n": 4,
-   "a": 358.05
+   "a": 374.08
+  },
+  {
+   "code": "135",
+   "label": "Misrepresentation",
+   "type": "Contestazione",
+   "n": 3,
+   "a": 322.18
+  },
+  {
+   "code": "4752",
+   "label": "Declined Auth",
+   "type": "Contestazione",
+   "n": 2,
+   "a": 298.78
   },
   {
    "code": "C08",
@@ -72,11 +100,11 @@
    "a": 243.9
   },
   {
-   "code": "132",
-   "label": "Cancelled Recurring",
+   "code": "4860",
+   "label": "Credit Not Processed",
    "type": "Contestazione",
-   "n": 2,
-   "a": 220.18
+   "n": 3,
+   "a": 213.89
   },
   {
    "code": "4834",
@@ -84,20 +112,6 @@
    "type": "Contestazione",
    "n": 2,
    "a": 192.91
-  },
-  {
-   "code": "4752",
-   "label": "Declined Auth",
-   "type": "Contestazione",
-   "n": 1,
-   "a": 188.69
-  },
-  {
-   "code": "1262",
-   "label": "Paid Other Means",
-   "type": "Contestazione",
-   "n": 2,
-   "a": 174.79
   },
   {
    "code": "4868",
@@ -119,20 +133,6 @@
    "type": "Contestazione",
    "n": 1,
    "a": 146.79
-  },
-  {
-   "code": "135",
-   "label": "Misrepresentation",
-   "type": "Contestazione",
-   "n": 1,
-   "a": 110.09
-  },
-  {
-   "code": "4860",
-   "label": "Credit Not Processed",
-   "type": "Contestazione",
-   "n": 2,
-   "a": 103.8
   },
   {
    "code": "4555",
@@ -574,6 +574,258 @@
    "date": null,
    "amount": 188.69,
    "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-05",
+   "amount": 110.09,
+   "code": "4752",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-05",
+   "amount": 59.87,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-04",
+   "amount": 118.06,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-04",
+   "amount": 39.9,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-04",
+   "amount": 118.06,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-04",
+   "amount": 36.75,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-04",
+   "amount": 72.35,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-03",
+   "amount": 72.35,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-03",
+   "amount": 51.9,
+   "code": "132",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-02",
+   "amount": 188.69,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-01",
+   "amount": 12.25,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-01",
+   "amount": 59.87,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-07",
+   "amount": 72.35,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-06",
+   "amount": 188.69,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-06",
+   "amount": 64.15,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-09",
+   "amount": 110.09,
+   "code": "135",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-09",
+   "amount": 102.0,
+   "code": "132",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-09",
+   "amount": 120.04,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-09",
+   "amount": 89.85,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-09",
+   "amount": 102.0,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-11",
+   "amount": 72.35,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-13",
+   "amount": 51.9,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-13",
+   "amount": 120.04,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-13",
+   "amount": 78.0,
+   "code": "4853",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-14",
+   "amount": 188.69,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-15",
+   "amount": 39.9,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-16",
+   "amount": 188.69,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-16",
+   "amount": 179.7,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-17",
+   "amount": 120.04,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-17",
+   "amount": 72.35,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-18",
+   "amount": 120.04,
+   "code": "4837",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-20",
+   "amount": 110.09,
+   "code": "137",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-20",
+   "amount": 110.09,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-22",
+   "amount": 188.69,
+   "code": "1262",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-24",
+   "amount": 120.04,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-24",
+   "amount": 179.7,
+   "code": "1262",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-30",
+   "amount": 110.09,
+   "code": "4860",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-30",
+   "amount": 120.04,
+   "code": "104",
+   "type": "Frode"
+  },
+  {
+   "date": "2026-07-31",
+   "amount": 102.0,
+   "code": "135",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-31",
+   "amount": 72.35,
+   "code": "1262",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-31",
+   "amount": 217.55,
+   "code": "131",
+   "type": "Contestazione"
+  },
+  {
+   "date": "2026-07-31",
+   "amount": 199.6,
+   "code": "131",
    "type": "Contestazione"
   }
  ]

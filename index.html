@@ -314,6 +314,29 @@
   </div>
   </div>
 
+  <div class="page" id="pg-cbkurv">
+  <div class="cb-head">
+    <div>
+      <h2>Chargeback KURV &mdash; per reason code</h2>
+      <p>fonte foglio &laquo;DISPUTE KURV2026&raquo; &middot; maggio&ndash;luglio 2026 &middot; <span id="cbkUpd">&mdash;</span></p>
+    </div>
+  </div>
+  <div class="grid cb-grid">
+    <div class="card cb-total"><h3>Chargeback totali</h3><div class="big" id="cbkTot">&mdash;</div><div class="lbl" id="cbkTotSub"></div></div>
+    <div class="card cb-total"><h3>Frode (104)</h3><div class="big amt" id="cbkFro">&mdash;</div><div class="lbl" id="cbkFroSub"></div></div>
+    <div class="card cb-total"><h3>Contestazioni</h3><div class="big" id="cbkCon">&mdash;</div><div class="lbl" id="cbkConSub"></div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 10px">Per reason code</h3>
+    <div id="cbkReason"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 10px">Per prodotto</h3>
+    <div id="cbkProd"></div>
+    <p class="note" id="cbkNote"></p>
+  </div>
+  </div>
+
   <div class="page" id="pg-subs">
   <div class="pfbar" id="pf-subs"></div>
   <div class="cb-head">
@@ -1017,7 +1040,8 @@ function loadData(){
     .then(()=>loadRinnovi())
     .then(()=>loadEmail())
     .then(()=>loadCCX())
-    .finally(()=>{renderAll();renderContest();renderRebills();try{renderEmail();}catch(e){}try{renderCCX();}catch(e){}if(btn){btn.disabled=false;btn.classList.remove('spin');}});
+    .then(()=>loadCBK())
+    .finally(()=>{renderAll();renderContest();renderRebills();try{renderEmail();}catch(e){}try{renderCCX();}catch(e){}try{renderCBK();}catch(e){}if(btn){btn.disabled=false;btn.classList.remove('spin');}});
 }
 document.getElementById('refreshBtn').addEventListener('click',loadData);
 renderContest();
@@ -1157,11 +1181,42 @@ function renderNF(){const card=document.getElementById('nfCard');if(!card)return
   stackChart('nfChart',aggDaily(rows,TGRAN,'','',['nw','fu']),[{k:'nw',col:'var(--m)'},{k:'fu',col:'var(--warn)'}]);
   if(sEl)sEl.textContent='ticket gestiti · nuovi/follow-up + repliche del cliente per '+granLab(TGRAN);}
 
+/* ==== Chargeback KURV (chargebacks.json, stesso repo) ==== */
+let CBK=null;
+function loadCBK(){
+  return fetch('chargebacks.json?t='+Date.now(),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).then(j=>{CBK=j||null;}).catch(()=>{CBK=null;});
+}
+function _cbkMoney(v){return '$ '+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function renderCBK(){
+  if(!CBK)return;
+  const T=CBK.total||{n:0,a:0};
+  const fro=(CBK.byType||[]).find(x=>x.k==='Frode')||{n:0,a:0};
+  const con=(CBK.byType||[]).find(x=>x.k==='Contestazione')||{n:0,a:0};
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('cbkUpd','agg. '+(CBK.updated||'—'));
+  set('cbkTot',String(T.n)); set('cbkTotSub',_cbkMoney(T.a)+' · '+(CBK.scope||''));
+  set('cbkFro',String(fro.n)); set('cbkFroSub',_cbkMoney(fro.a));
+  set('cbkCon',String(con.n)); set('cbkConSub',_cbkMoney(con.a));
+  const rs=(CBK.byReason||[]).slice();
+  const rEl=document.getElementById('cbkReason');
+  if(rEl)rEl.innerHTML=rs.map(function(x){
+    var col=x.type==='Frode'?'var(--warn)':'var(--n)';
+    return '<div class="cb-line"><div class="lb"><span class="dot" style="background:'+col+'"></span><b>'+x.code+'</b> <span style="color:var(--muted)">'+(x.label||'')+'</span></div>'+
+      '<div class="vv"><span class="cnt">'+x.n+'</span>'+_cbkMoney(x.a)+'</div></div>';
+  }).join('');
+  const pEl=document.getElementById('cbkProd');
+  if(pEl)pEl.innerHTML=(CBK.byProduct||[]).map(function(p){
+    return '<div class="cb-line"><div class="lb">'+p.k+'</div><div class="vv"><span class="cnt">'+(p.cb||0)+' cb</span>'+_cbkMoney(p.cont)+'</div></div>';
+  }).join('');
+  const nn=document.getElementById('cbkNote');
+  if(nn)nn.innerHTML='Dettaglio per <b>reason code</b> dai fogli Disputes 0526/0626/0726 del workbook «DISPUTE KURV2026». Tipo: <b>Frode</b> = reason code 104; il resto è <b>Contestazione</b>. La ripartizione per prodotto è invariata dalla versione precedente.';
+}
 /* NAV / ROUTER */
-const PAGES=[['index','Indice'],['home','Riepilogo'],['ticket','Ticket'],['email','Analisi email'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['declines','Decline & carrelli'],['contest','Contestazioni'],['refund','Rimborsi USA']];
+const PAGES=[['index','Indice'],['home','Riepilogo'],['ticket','Ticket'],['email','Analisi email'],['subs','Abbonamenti'],['finance','Addebiti & Finanza'],['declines','Decline & carrelli'],['contest','Contestazioni'],['cbkurv','Chargeback KURV'],['refund','Rimborsi USA']];
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
   document.querySelectorAll('#appnav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));window.scrollTo(0,0);
-  if(id==='index')renderIndex();if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='declines'){try{renderCCX();}catch(e){}}if(id==='refund')renderRefund();}
+  if(id==='index')renderIndex();if(id==='home')renderHome();if(id==='email')renderEmail();if(id==='subs')renderSubsFilter();if(id==='finance')renderFinFilter();if(id==='declines'){try{renderCCX();}catch(e){}}if(id==='cbkurv'){try{renderCBK();}catch(e){}}if(id==='refund')renderRefund();}
 document.getElementById('appnav').innerHTML=PAGES.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='index'?' class="on"':'')+'>'+p[1]+'</button>').join('');
 document.getElementById('appnav').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)showPage(b.dataset.p);});
 
